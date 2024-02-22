@@ -127,7 +127,7 @@ class _PartyListPageState extends State<PartyListPage>
                     onTap: () {
                       Navigator.pushNamed(context, PartyCreditPage.routeName,
                           arguments: ScreenArguments(party.id!, party.name!,
-                              party.phoneNumber!, _tabController.index));
+                              party.phoneNumber!, _tabController.index,party.guardianName, party.address));
                     },
                   );
                 },
@@ -276,7 +276,7 @@ class _PartiesListViewState extends State<PartiesListView> {
             print("line 278 in partylist");
             await Navigator.pushNamed(context, PartyCreditPage.routeName,
                 arguments: ScreenArguments(
-                    party.id!, party.name!, party.phoneNumber!, widget.tabno));
+                    party.id!, party.name!, party.phoneNumber!, widget.tabno, party.guardianName, party.address));
             // widget.partyCubit.getInitialCreditParties();
             widget.partyCubit.getMyParties();
           },

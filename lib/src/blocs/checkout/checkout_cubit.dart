@@ -71,6 +71,16 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       return;
     }
   }
+  Future<void> payDue(Order order, String invoiceNum) async {
+    emit(CheckoutLoading());
+    try {
+      await SalesService.payDue(order, invoiceNum);
+      emit(CheckoutSuccess());
+    } on DioError catch (_) {
+      emit(CheckoutError("Something went wrong"));
+      return;
+    }
+  }
   Future<void> createSalesOrder(Order input, String invoiceNum) async {
     emit(CheckoutLoading());
     try {

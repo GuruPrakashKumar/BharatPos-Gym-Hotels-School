@@ -12,6 +12,7 @@ import 'package:shopos/src/models/input/order.dart';
 
 import 'package:shopos/src/models/party.dart';
 import 'package:shopos/src/models/user.dart';
+import 'package:shopos/src/pages/checkout.dart';
 import 'package:shopos/src/services/global.dart';
 import 'package:shopos/src/services/locator.dart';
 import 'package:shopos/src/services/set_or_change_pin.dart';
@@ -24,9 +25,11 @@ class ScreenArguments {
   final String partyId;
   final String partName;
   final String partyContactNo;
+  final String? partyAddress;
+  final String? guardianName;
   final int tabbarNo;
 
-  ScreenArguments(this.partyId, this.partName, this.partyContactNo, this.tabbarNo);
+  ScreenArguments(this.partyId, this.partName, this.partyContactNo, this.tabbarNo, this.guardianName, this.partyAddress);
 }
 
 class PartyCreditPage extends StatefulWidget {
@@ -188,7 +191,24 @@ class _PartyCreditPageState extends State<PartyCreditPage> {
                               Text("Active status: ${activeMem.activeStatus}"),
                               Text("Due: ${activeMem.due}"),
                               // if(activeMem.due!>0)//todo: uncomment this line
-                              CustomButton(title: "Pay Due", onTap: (){})
+                              CustomButton(title: "Pay Due", onTap: (){
+                                Order order = Order(
+                                  orderItems: [OrderItemInput(membership: activeMem.membership)],
+                                  party: Party(
+                                    id: widget.args.partyId,
+                                    name: widget.args.partName,
+                                    phoneNumber: widget.args.partyContactNo,
+                                    type: "customer",
+                                    address: widget.args.partyAddress,
+                                    guardianName: widget.args.guardianName
+                                  )
+                                  //todo: for bill like businessName etc (we have not sufficient data here for now)
+                                );
+                                Navigator.pushNamed(
+                                    context,
+                                    CheckoutPage.routeName,
+                                    arguments: CheckoutPageArgs(invoiceType: OrderType.sale, order: order, payDue: true));
+                              })
                             ],
                           ),
                         ),

@@ -7,19 +7,35 @@ import 'package:shopos/src/services/api_v1.dart';
 class SalesService {
   const SalesService();
 
+  static Future<Response> payDue(Order orderItemInput, String invoiceNum) async {
+    final response = await ApiV1Service.postRequest(
+      '/membership/payDue',
+      data: {
+        'paymentDate': DateTime.now().toString(),
+        'membership': orderItemInput.orderItems?[0].membership?.id,
+        'orderItems': orderItemInput.orderItems?.map((e) => e.toSaleMap()).toList(),
+        'modeOfPayment': orderItemInput.modeOfPayment,
+        'total': orderItemInput.orderItems?.fold<double>(0, (acc, curr) {
+          return curr.membership!.sellingPrice! + acc;
+        }),
+        'party': orderItemInput.party?.id,
+        'invoiceNum': invoiceNum,
+        'reciverName': orderItemInput.reciverName,
+        'businessName': orderItemInput.businessName,
+        'businessAddress': orderItemInput.businessAddress,
+        'gst': orderItemInput.gst,
+      },
+    );
+    print("response.data from payDue");
+    print(response.data);
+    return response;
+  }
+
   ///
   static Future<Response> createSalesOrder(
     Order orderItemInput,
     String invoiceNum,
   ) async {
-    // print('${orderItemInput.orderItems![0].product?.sellingPrice}');
-    // print('${orderItemInput.orderItems![0].product?.baseSellingPriceGst}');
-    // print('${orderItemInput.orderItems![0].product?.saleigst}');
-    // print("---line 16 in sales.dart");
-    // print(orderItemInput.orderItems);
-    // print(orderItemInput.modeOfPayment);
-    // print(orderItemInput.party);
-    // print(orderItemInput.invoiceNum);
     var dataSent = {
       'paymentDate': DateTime.now().toString(),
       'membership': orderItemInput.orderItems?[0].membership?.id,

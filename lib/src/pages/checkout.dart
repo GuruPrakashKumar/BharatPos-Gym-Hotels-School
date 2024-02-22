@@ -71,6 +71,8 @@ class PrintBillArgs {
 }
 
 class CheckoutPageArgs {
+  ///payDue will be true if paying due (i.e. from party credit page)
+  final bool? payDue;
   final OrderType invoiceType;
   final Order order;
   // final String orderId;
@@ -78,6 +80,7 @@ class CheckoutPageArgs {
   ///if canEdit is set to false while go to sale is executed from report page
   final bool? canEdit;
   CheckoutPageArgs({
+    this.payDue = false,
     required this.invoiceType,
     required this.order,
     // required this.orderId,
@@ -1104,7 +1107,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                 convertToSale != false)
                               Column(
                                 children: [
-                                  TypeAheadFormField<Party>(
+                                  (widget.args.order.party != null)
+                                  ? Text("Party name: ${widget.args.order.party?.name}")
+                                  : TypeAheadFormField<Party>(
                                     validator: (value) {
                                       final isEmpty =
                                           (value == null || value.isEmpty);
@@ -1309,10 +1314,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                                       SizedBox(
                                                         width: 5,
                                                       ),
-                                                      i ==
-                                                              _modeOfPayControllers
-                                                                      .length -
-                                                                  1
+                                                      i == _modeOfPayControllers.length -1
                                                           ? InkWell(
                                                               onTap: () =>
                                                                   _removePaymentMethodField(
@@ -1730,8 +1732,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
        if (widget.args.invoiceType == OrderType.sale) {
         if(checkAmounts()){
-          _checkoutCubit.createSalesOrder(
-              widget.args.order,(salesInvoiceNo + 1).toString());
+          if(widget.args.payDue==false){
+            _checkoutCubit.createSalesOrder(widget.args.order,(salesInvoiceNo + 1).toString());
+          }else{
+            _checkoutCubit.payDue(widget.args.order,(salesInvoiceNo + 1).toString());
+          }
         }
       }
 
