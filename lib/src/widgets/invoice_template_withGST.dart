@@ -37,6 +37,35 @@ String invoiceTemplatewithGST({
       .toList()
       .join(" ");
 
+  bool atLeastOneItemHaveGST = false;
+  order.orderItems!.forEach((element) {
+    if (element.membership!.gstRate != "null") {
+      print(element.membership?.toMap());
+      atLeastOneItemHaveGST = true;
+    }
+  });
+  String shopkeepergstin() {
+    order.orderItems!.forEach((element) {
+      if (element.membership!.gstRate != "null") {
+        print(element.membership?.toMap());
+        atLeastOneItemHaveGST = true;
+      }
+    });
+    if (user.GstIN != null && user.GstIN!.isNotEmpty&&atLeastOneItemHaveGST) {
+      return '<div> GSTIN ${user.GstIN!.toUpperCase()} </div>';
+    }
+    return '';
+  }
+  print("atleast one item have gst is $atLeastOneItemHaveGST");
+  if(!atLeastOneItemHaveGST){
+    headers.remove("Taxable value");
+    headers.remove("GST");
+  }
+  if(!atLeastOneItemHaveGST){
+    // headers.insert(1, "");
+    headers.insert(0, "");
+    headers.insert(0, "");
+  }
   ///
   String headerRows() => List.generate(
         headers.length,
@@ -77,7 +106,7 @@ String invoiceTemplatewithGST({
 
   String usergstin() {
 
-   
+
     if (order.gst != null && order.gst!.isNotEmpty) {
       return '<div><strong>GSTIN: </strong>${order.gst!.toUpperCase()}</div>';
     }
@@ -90,43 +119,28 @@ String invoiceTemplatewithGST({
     return '';
   }
 
-  String shopkeepergstin() {
 
-
-         bool atleastOneItemhaveGST = false;
-      print("Value OF GST");
-      order.orderItems!.forEach((element) {
-        print(element.product!.gstRate);
-        if (element.product!.gstRate != "null") {
-          atleastOneItemhaveGST = true;
-        }
-      });
-    if (user.GstIN != null && user.GstIN!.isNotEmpty&&atleastOneItemhaveGST) {
-      return '<div> GSTIN ${user.GstIN!.toUpperCase()} </div>';
-    }
-    return '';
-  }
 
   bool expirydateAvailableFlag = false;
   bool hsnAvailableFlag = false;
   bool mrpAvailableFlag=false;
-  order.orderItems!.forEach((element) {
-    if (element.product!.expiryDate != null &&
-        element.product!.expiryDate != "null" &&
-        element.product!.expiryDate != "") {
-      expirydateAvailableFlag = true;
-    }
-    if (element.product!.hsn != null &&
-        element.product!.hsn != "null" &&
-        element.product!.hsn != "") {
-      hsnAvailableFlag = true;
-    }
-    if (element.product!.mrp != null &&
-        element.product!.mrp != "null" &&
-        element.product!.mrp != "") {
-      mrpAvailableFlag = true;
-    }
-  });
+  // order.orderItems!.forEach((element) {
+  //   if (element.product!.expiryDate != null &&
+  //       element.product!.expiryDate != "null" &&
+  //       element.product!.expiryDate != "") {
+  //     expirydateAvailableFlag = true;
+  //   }
+  //   if (element.product!.hsn != null &&
+  //       element.product!.hsn != "null" &&
+  //       element.product!.hsn != "") {
+  //     hsnAvailableFlag = true;
+  //   }
+  //   if (element.product!.mrp != null &&
+  //       element.product!.mrp != "null" &&
+  //       element.product!.mrp != "") {
+  //     mrpAvailableFlag = true;
+  //   }
+  // });
 
   ///
   String itemRows() => List.generate(
@@ -137,17 +151,18 @@ String invoiceTemplatewithGST({
           String gstrate = "";
 
           if (type == "OrderType.sale" || type == "OrderType.estimate" || type == "OrderType.saleReturn") {
-            if (orderItem.product!.gstRate == "null") {
-              baseprice = orderItem.product!.sellingPrice!.toDouble();
+            if (orderItem.membership!.gstRate == "null") {
+              baseprice = orderItem.membership!.sellingPrice!.toDouble();
               gstrate = "NA";
             } else {
-              baseprice = double.parse(orderItem.product!.baseSellingPriceGst!);
-              gstrate = orderItem.product!.gstRate!;
+              baseprice = double.parse(orderItem.membership!.basePrice!);
+              gstrate = orderItem.membership!.gstRate!;
             }
             if (gstrate != "NA")
               return '<tr>'
-                      '<td class="left product-name">${orderItem.product?.name}</td>'
-                      '<td class="left">${orderItem.quantity}</td>' +
+                      '<td class="left product-name">${orderItem.membership?.plan}</td>' +
+                      '<td class="left">${orderItem.membership?.validity}</td>'
+                       +
                   (expirydateAvailableFlag
                       ? orderItem.product!.expiryDate != null
                           ? '<td class="left">${orderItem.product!.expiryDate!.day}/${orderItem.product!.expiryDate!.month}/${orderItem.product!.expiryDate!.year}</td>'
@@ -163,17 +178,25 @@ String invoiceTemplatewithGST({
                         ? '<td class="left"> ${orderItem.product!.mrp!="null"?orderItem.product!.mrp :''}</td>'
                         : '<td class="left"></td>'
                       : '') +
-                  '<td class="left">₹ ${baseprice.toStringAsFixed(2)}</td>'
-                      '<td class="left">${orderItem.product?.saleigst}<p style="text-align:left"><small>(${gstrate}%)</small></p></td>'
-                      '<td class="left">₹ ${((orderItem.quantity) * (orderItem.product?.sellingPrice ?? 0)).toStringAsFixed(2)}</td>'
+                  (atLeastOneItemHaveGST
+                      ? '<td class="left">₹ ${baseprice.toStringAsFixed(2)}</td>'
+                      : '')
+                  +
+                  (atLeastOneItemHaveGST
+                      ? '<td class="left">${orderItem.membership?.igst}<p style="text-align:left"><small>(${gstrate}%)</small></p></td>'
+                      : '')
+                  +
+                      '<td class="left">₹ ${((orderItem.membership?.sellingPrice ?? 0)).toStringAsFixed(2)}</td>'
                       '</tr>';
             else {
-              print("llll");
-              print(hsnAvailableFlag);
-              return '<tr>'
-                      '<td class="left product-name">${orderItem.product?.name}</td>'
-                      '<td class="left">${orderItem.quantity}</td>'+
-                     
+              return '<tr>'+
+                (!atLeastOneItemHaveGST? '<td class="left"> </td>''<td class="left"> </td>' : "")
+                  +
+                      '<td class="left product-name">${orderItem.membership?.plan}</td>'
+                  +
+                        // (!atLeastOneItemHaveGST ? '<td class="left"> </td>' : "") +
+                      '<td class="left">${orderItem.membership?.validity}</td>'
+                  +
                   (expirydateAvailableFlag
                       ? orderItem.product!.expiryDate != null
                           ? '<td class="left">${orderItem.product!.expiryDate!.day}/${orderItem.product!.expiryDate!.month}/${orderItem.product!.expiryDate!.year}</td>'
@@ -189,12 +212,18 @@ String invoiceTemplatewithGST({
                       ? '<td class="left"> ${orderItem.product!.mrp!="null"?orderItem.product!.mrp :''}</td>'
                       : '<td class="left"></td>'
                       : '') +
-                       '<td class="left">₹ ${baseprice.toStringAsFixed(2)}</td>' +
-                  '<td class="left">NA<p style="text-align:left"><small>(NA%)</small></p></td>'
-                      '<td class="left">₹ ${((orderItem.quantity) * (orderItem.product?.sellingPrice ?? 1)).toStringAsFixed(2)}</td>'
+                  (atLeastOneItemHaveGST
+                      ? '<td class="left">₹ ${baseprice.toStringAsFixed(2)}</td>'
+                      : '')
+                  +
+                  (atLeastOneItemHaveGST
+                      ? '<td class="left">${orderItem.membership?.igst}<p style="text-align:left"><small>(${gstrate}%)</small></p></td>'
+                      : '')
+                  +
+                      '<td class="left">₹ ${((orderItem.membership?.sellingPrice ?? 1)).toStringAsFixed(2)}</td>'
                       '</tr>';
             }
-          } else {
+          } else {//todo: other than sale (i.e. purchase) not required for now
             if (orderItem.product!.gstRate == "null" &&
                 orderItem.product!.purchasePrice != 0) {
               baseprice = orderItem.product!.purchasePrice.toDouble();
@@ -243,7 +272,38 @@ String invoiceTemplatewithGST({
           }
         },
       ).join(' ');
+  String subtotalRow() {
+    if (!atLeastOneItemHaveGST) {
+      return '<tr>'
+          '<td class="left" colspan="4"><strong>Sub Total</strong></td>'
+          '<td class="right" colspan="2">₹ $subtotal</td>'
+          '</tr>';
+    } else {
+      return '';
+    }
+  }
 
+  String gstTotalRow() {
+    if (!atLeastOneItemHaveGST) {
+      return '<tr>'
+          '<td class="left" colspan="4"><strong>GST Total</strong></td>'
+          '<td class="right" colspan="2">₹ $gsttotal</td>'
+          '</tr>';
+    } else {
+      return '';
+    }
+  }
+
+  String netTotalRow() {
+    if (!atLeastOneItemHaveGST) {
+      return '<tr>'
+          '<td class="left" colspan="4"><strong>Net Total</strong></td>'
+          '<td class="right" colspan="2">₹ $total</td>'
+          '</tr>';
+    } else {
+      return '';
+    }
+  }
   ///
   return '''
 <!DOCTYPE html>
@@ -304,8 +364,8 @@ String invoiceTemplatewithGST({
               ${receiverName()}
               ${businessName()}
               ${businessAddress()}
-              ${usergstin()}
-              ${userdlNum()}
+              // ${usergstin()}
+              // ${userdlNum()}
               
              
               

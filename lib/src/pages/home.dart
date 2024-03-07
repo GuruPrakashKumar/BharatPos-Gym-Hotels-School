@@ -100,13 +100,6 @@ class _HomePageState extends State<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text("Hi ${state.user.businessName ?? ""}!"),
-                        SizedBox(
-                          width: 5,
-                        ),
-                        Image.asset(
-                          "assets/images/handwave.png",
-                          height: 25,
-                        )
                       ],
                     ),
                     Text(
@@ -137,16 +130,16 @@ class _HomePageState extends State<HomePage> {
                             fontSize: 14,
                             fontWeight: FontWeight.w600),
                       ),*/
-                      Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: GestureDetector(
-                          onTap: () {},
-                          child: Image.asset(
-                            "assets/images/bell.png",
-                            height: 30,
-                          ),
-                        ),
-                      )
+                      // Padding(
+                      //   padding: const EdgeInsets.all(10),
+                      //   child: GestureDetector(
+                      //     onTap: () {},
+                      //     child: Image.asset(
+                      //       "assets/images/bell.png",
+                      //       height: 30,
+                      //     ),
+                      //   ),
+                      // )
                     ],
                   )
                 ],
@@ -235,23 +228,23 @@ class _HomePageState extends State<HomePage> {
                         },
                       ),
 
-                      ListTile(
-                        leading: Image.asset(
-                          "assets/icon/preferences_icon.png",
-                          height: 28,
-                        ),
-                        title: Title(color: Colors.black, child: Text("Preferences")),
-                        onTap: () async {
-                          var result = true;
-
-                          if (await _pinService.pinStatus() == true) {
-                            result = await PinValidation.showPinDialog(context) as bool;
-                          }
-                          if(result){
-                            Navigator.of(context).pushNamed(DefaultPreferences.routeName);
-                          }
-                        },
-                      ),
+                      // ListTile(
+                      //   leading: Image.asset(
+                      //     "assets/icon/preferences_icon.png",
+                      //     height: 28,
+                      //   ),
+                      //   title: Title(color: Colors.black, child: Text("Preferences")),
+                      //   onTap: () async {
+                      //     var result = true;
+                      //
+                      //     if (await _pinService.pinStatus() == true) {
+                      //       result = await PinValidation.showPinDialog(context) as bool;
+                      //     }
+                      //     if(result){
+                      //       Navigator.of(context).pushNamed(DefaultPreferences.routeName);
+                      //     }
+                      //   },
+                      // ),
                       ListTile(
                         leading: Image.asset(
                           "assets/images/about.png",
@@ -317,6 +310,7 @@ class _HomePageState extends State<HomePage> {
                         HomeCard(
                           color: 0XFF48AFFF,
                           icon: 'assets/images/Plans.png',
+                          decreaseSizeOfIcon: 18,
                           title: "Plans",
                           onTap: () {
                             Navigator.pushNamed(
@@ -404,11 +398,11 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   ),
                                   child: Padding(
-                                      padding: const EdgeInsets.all(8),
+                                      padding: const EdgeInsets.all(18),
                                       child: Image.asset(
                                         "assets/images/planning.png",
-                                        height: 100,
-                                        width: 110,
+                                        height: 80,
+                                        width: 90,
                                       )),
                                 ),
                                 Text(
@@ -424,9 +418,14 @@ class _HomePageState extends State<HomePage> {
                         Expanded(
                           child: GestureDetector(
                             onTap: () {
-                              Navigator.pushNamed(context, CreateSale.routeName,
-                                  arguments: BillingPageArgs(
-                                      editOrders: []));
+                              // Navigator.pushNamed(context, CreateSale.routeName,
+                              //     arguments: BillingPageArgs(
+                              //         editOrders: []));
+                              Navigator.pushNamed(
+                                context,
+                                SearchProductListScreen.routeName,
+                                arguments: PlanListPageArgs(isSelecting: true, orderType: OrderType.sale, membershipPlanList: []),
+                              );
                             },
                             child: Column(
                               children: [
@@ -504,12 +503,14 @@ class HomeCard extends StatelessWidget {
   final VoidCallback onTap;
   final String title;
   final int color;
+  final double? decreaseSizeOfIcon;
   const HomeCard({
     Key? key,
     required this.icon,
     required this.title,
     required this.color,
     required this.onTap,
+    this.decreaseSizeOfIcon = 0,
   }) : super(key: key);
 
   @override
@@ -527,14 +528,14 @@ class HomeCard extends StatelessWidget {
             ),
             elevation: 5,
             child: Padding(
-              padding: const EdgeInsets.all(15.0),
+              padding: EdgeInsets.all(15 + decreaseSizeOfIcon!/2),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Image.asset(
                     icon,
-                    height: 100,
-                    width: 100,
+                    height: 100 - decreaseSizeOfIcon!,
+                    width: 100 - decreaseSizeOfIcon!,
                   ),
                 ],
               ),

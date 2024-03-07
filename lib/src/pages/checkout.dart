@@ -41,6 +41,7 @@ import 'package:shopos/src/widgets/pdf_bill_template.dart';
 import 'package:upi_payment_qrcode_generator/upi_payment_qrcode_generator.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../models/membershipPlan_model.dart';
 import '../models/party.dart';
 import '../models/product.dart';
 
@@ -76,7 +77,7 @@ class CheckoutPageArgs {
   final OrderType invoiceType;
   final Order order;
   // final String orderId;
-  ///canEdit flag is used for: checkout from sale report(stopping user to edit sale
+  ///canEdit flag is ONLY used for: checkout from sale report(stopping user to edit sale
   ///if canEdit is set to false while go to sale is executed from report page
   final bool? canEdit;
   CheckoutPageArgs({
@@ -119,6 +120,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   var estimateNo;
   bool isBillTo = false;
   bool convertToSale = false;
+  int validity = 365;
   final TextEditingController receiverNameController = TextEditingController();
   final TextEditingController businessNameController = TextEditingController();
   final TextEditingController businessAddressController =
@@ -139,6 +141,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
     super.initState();
     print("init state of checkout");
     init();
+    if(widget.args.canEdit==false)
+      calculate();
     // String date = DateTime.now().toString();
     // print(date);
     // print(date.substring(11,16));
@@ -151,8 +155,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
     fetchNTPTime();
     _amountControllers.add(TextEditingController());
     _modeOfPayControllers.add(TextEditingController());
-    print("line 130 in checkout");
-    print(widget.args.order.businessName);
     if (widget.args.order.reciverName != null &&
         widget.args.order.reciverName != "") {
       isBillTo = true;
@@ -175,7 +177,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   void init() async {
     _loadingShareButton = true;
     prefs = await SharedPreferences.getInstance();
-    shareButtonPref = (await prefs.getBool('share-button-preference'))!;
+    // shareButtonPref = (await prefs.getBool('share-button-preference'))!;
     _loadingShareButton = false;
   }
   _removePaymentMethodField(i) {
@@ -350,7 +352,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       ),
                       onTap: () async {
                         // _onTapShare(2);
-                        if (widget.args.invoiceType != OrderType.estimate) {
+                        if (widget.args.invoiceType != OrderType.estimate && widget.args.invoiceType != OrderType.sale) {
                           SharedPreferences prefs =
                           await SharedPreferences.getInstance();
                           String? defaultBill = prefs.getString('defaultBill');
@@ -363,7 +365,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           } else if (defaultBill == '80mm') {
                             await _view80mmBill(widget.args.order, popAll);
                           } else if (defaultBill == 'A4') {
-                            await _viewPdf();
+                            await _viewPdf(popAll);
                             if(popAll){
                               Future.delayed(const Duration(milliseconds: 400), () {
                                 Navigator.of(context).popUntil((route) => route.isFirst);
@@ -371,7 +373,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             }
                           }
                         } else {
-                          await _viewPdf();
+                          await _viewPdf(popAll);
                           if(popAll){
                             Future.delayed(const Duration(milliseconds: 400), () {
                               Navigator.of(context).popUntil((route) => route.isFirst);
@@ -443,7 +445,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                       onPressed: () {
                                         if (int.tryParse(t.text.trim()) != null &&
                                             t.text.length == 10)
-                                          includePayments();
+                                           includePayments();
                                         _launchUrl(
                                             t.text.trim(),
                                             user,
@@ -470,31 +472,51 @@ class _CheckoutPageState extends State<CheckoutPage> {
         )).show();
   }
 
+  ///when user wants to pay less then due amount then below logic will be executed so that desired bill can be generated
+  calculate(){
+    for (int i = 0; i < widget.args.order.orderItems!.length; i++) {
+      OrderItemInput orderItem = widget.args.order.orderItems![i];
+      double? totalInputAmount = widget.args.order.modeOfPayment?.fold<double>(0, (acc, curr) {
+        return curr['amount'] + acc;
+      });
+      if(orderItem.membership?.gstRate!="null"){
+        if(orderItem.membership!.GSTincluded!){
+          _onTotalChange(orderItem.membership!, totalInputAmount?.toStringAsFixed(2));
+        }else{
+          _onSubtotalChange(orderItem.membership!, totalInputAmount?.toStringAsFixed(2));
+        }
+      }else{
+        _onTotalChange(orderItem.membership!, totalInputAmount?.toStringAsFixed(2));
+      }
+    }
+  }
   ///
-  _viewPdf() async {
+  _viewPdf(bool popAll) async {
+    includePayments();
+    calculate();
     bool expirydateAvailableFlag = false;
     bool hsnAvailableFlag = false;
     bool mrpAvailableFlag = false;
 
-    widget.args.order.orderItems!.forEach((element) {
-      if (element.product!.expiryDate != null &&
-          element.product!.expiryDate != "null" &&
-          element.product!.expiryDate != "") {
-        expirydateAvailableFlag = true;
-      }
-      if (element.product!.hsn != null &&
-          element.product!.hsn != "null" &&
-          element.product!.hsn != "") {
-        hsnAvailableFlag = true;
-      }
-      if (element.product!.mrp != null &&
-          element.product!.mrp != "null" &&
-          element.product!.mrp != "") {
-        mrpAvailableFlag = true;
-      }
-    });
+    // widget.args.order.orderItems!.forEach((element) {
+    //   if (element.product!.expiryDate != null &&
+    //       element.product!.expiryDate != "null" &&
+    //       element.product!.expiryDate != "") {
+    //     expirydateAvailableFlag = true;
+    //   }
+    //   if (element.product!.hsn != null &&
+    //       element.product!.hsn != "null" &&
+    //       element.product!.hsn != "") {
+    //     hsnAvailableFlag = true;
+    //   }
+    //   if (element.product!.mrp != null &&
+    //       element.product!.mrp != "null" &&
+    //       element.product!.mrp != "") {
+    //     mrpAvailableFlag = true;
+    //   }
+    // });
 
-    var headerList = ["Name", "Qty", "Taxable value", "GST", "Amount"];
+    var headerList = ["Plan name","Validity (days)", "Taxable value", "GST", "Amount"];
     if(mrpAvailableFlag){
       headerList.insert(2, "MRP");
     }
@@ -509,14 +531,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
     salesInvoiceNo = await _checkoutCubit.getSalesNum() as int;
     purchasesInvoiceNo = await _checkoutCubit.getPurchasesNum() as int;
     estimateNo = await _checkoutCubit.getEstimateNum() as int;
-    // estimateNo++; //for showing in the pdf
-    // salesInvoiceNo++;
-    // purchasesInvoiceNo++;
-    print("line 392 in checkout.dart");
-    print(widget.args.order.invoiceNum.runtimeType);
-    // print(salesInvoiceNo);
-    // print(widget.args.order.createdAt);
-    print("total price is ${totalPrice()}");
+    if(!popAll){
+      estimateNo++; //for showing in the pdf
+      salesInvoiceNo++;
+      purchasesInvoiceNo++;
+    }
     final htmlContent = invoiceTemplatewithGST(
       type: widget.args.invoiceType.toString(),
       date: widget.args.order.createdAt.toString() ?? "",
@@ -678,33 +697,75 @@ class _CheckoutPageState extends State<CheckoutPage> {
     }
   }
 
-  ///
+  ///Grand total
   String? totalPrice() {
     return widget.args.order.orderItems?.fold<double>(
       0,
       (acc, curr) {
         if (widget.args.invoiceType == OrderType.purchase) {
-          return (curr.quantity * (curr.product?.purchasePrice ?? 1)) + acc;
+
+          if(curr.membership?.gstRate == "null"){
+              return (curr.price! + acc);
+          }else{
+            if(curr.membership!.GSTincluded!){
+              return (curr.price! + acc);
+            }else{//gst excluded
+              double bsp = curr.price!;
+              double gstAmt = (bsp * (double.parse(curr.membership!.gstRate!) / 100));
+              String igst = gstAmt.toStringAsFixed(2);
+              String sgst = (gstAmt / 2).toStringAsFixed(2);
+              String cgst = (gstAmt / 2).toStringAsFixed(2);
+
+              curr.baseSellingPrice = bsp.toStringAsFixed(2);
+              curr.originalbaseSellingPrice = bsp.toStringAsFixed(2);
+              curr.saleIGST = igst;
+              curr.saleSGST = sgst;
+              curr.saleCGST = cgst;
+              return (bsp + gstAmt) + acc;
+
+            }
+
+          }
+          // return (curr.quantity * (curr.product?.purchasePrice ?? 1)) + acc;
         }
         return (curr.membership?.sellingPrice ?? 1.0) + acc;
       },
     ).toStringAsFixed(2);
   }
 
-  ///
+  ///Sub Total
   String? totalbasePrice() {
     return widget.args.order.orderItems?.fold<double>(
       0,
       (acc, curr) {
         if (widget.args.invoiceType == OrderType.purchase) {
           // return (curr.quantity * (curr.product?.purchasePrice ?? 1)) + acc;
-          double sum = 0;
-          if (curr.product!.basePurchasePriceGst! != "null")
-            sum = double.parse(curr.product!.basePurchasePriceGst!);
-          else {
-            sum = curr.product!.purchasePrice.toDouble();
+          if(curr.membership?.gstRate=="null"){
+            curr.baseSellingPrice = curr.price!.toStringAsFixed(2);
+            curr.originalbaseSellingPrice = curr.price!.toStringAsFixed(2);
+            curr.saleIGST = "0";
+            curr.saleSGST = "0";
+            curr.saleCGST = "0";
+            return curr.price! + acc;
+          }else{
+            if(curr.membership!.GSTincluded!){//if gst is included
+              double due = curr.price!;
+              double basesp = (due * 100 / (100 + double.parse(curr.membership!.gstRate!)));
+
+              String sgst = ((due - basesp) / 2).toStringAsFixed(2);
+              String cgst = ((due - basesp) / 2).toStringAsFixed(2);
+              String igst = (due - basesp).toStringAsFixed(2);
+
+              curr.baseSellingPrice = basesp.toStringAsFixed(2);
+              curr.originalbaseSellingPrice = due.toStringAsFixed(2);
+              curr.saleIGST = igst;
+              curr.saleSGST = sgst;
+              curr.saleCGST = cgst;
+              return basesp + acc;
+            }else{
+              return curr.price!+acc;
+            }
           }
-          return (curr.quantity * sum) + acc;
         } else {
           double sum = 0;
           if (curr.membership!.basePrice != "null")
@@ -725,21 +786,21 @@ class _CheckoutPageState extends State<CheckoutPage> {
         }
     ).toStringAsFixed(2);
   }
-  ///
+  ///Tax GST
   String? totalgstPrice() {
     return widget.args.order.orderItems?.fold<double>(
       0,
       (acc, curr) {
         if (widget.args.invoiceType == OrderType.purchase) {
           // return (curr.quantity * (curr.product?.purchasePrice ?? 1)) + acc;
-          double gstsum = 0;
-          if (curr.product!.purchaseigst! != "null")
-            gstsum = double.parse(curr.product!.purchaseigst!);
-          // else {
-          //   gstsum = curr.product!.sellingPrice;
-          // }
-          return double.parse(
-              ((curr.quantity * gstsum) + acc).toStringAsFixed(2));
+          double bsp = curr.price!;
+          double gstAmt = 0;
+          if(curr.membership?.gstRate == "null"){
+            gstAmt = 0;
+          }else{
+            gstAmt = (bsp * (double.parse(curr.membership!.gstRate!) / 100));
+          }
+          return gstAmt + acc;
         } else {
           double gstsum = 0;
           if (curr.membership!.igst! != "null")
@@ -747,8 +808,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           // else {
           //   gstsum = curr.product!.sellingPrice;
           // }
-          return double.parse(
-              (gstsum + acc).toStringAsFixed(2));
+          return double.parse((gstsum + acc).toStringAsFixed(2));
         }
       },
     ).toStringAsFixed(2);
@@ -784,6 +844,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
     // );
     salesInvoiceNo = await _checkoutCubit.getSalesNum() as int;
     purchasesInvoiceNo = await _checkoutCubit.getPurchasesNum() as int;
+    if(!popAll){
+      salesInvoiceNo++;
+      purchasesInvoiceNo++;
+    }
     var combineArgs = CombineArgs(
         bluetoothArgs: null,
         billArgs: PrintBillArgs(
@@ -845,6 +909,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
     //         : 0);
     salesInvoiceNo = await _checkoutCubit.getSalesNum() as int;
     purchasesInvoiceNo = await _checkoutCubit.getPurchasesNum() as int;
+    if(!popAll){
+      salesInvoiceNo++;
+      purchasesInvoiceNo++;
+    }
     var combineArgs = CombineArgs(
         bluetoothArgs: null,
         billArgs: PrintBillArgs(
@@ -910,7 +978,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               onTap: () async {
                 SharedPreferences prefs = await SharedPreferences.getInstance();
                 await prefs.setString('defaultBill', 'A4');
-                await _viewPdf();
+                await _viewPdf(popAll);
                 if(popAll){
                   Future.delayed(const Duration(milliseconds: 400), () {
                     Navigator.of(context).popUntil((route) => route.isFirst);
@@ -947,20 +1015,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
+        centerTitle: true,
         title: Text(
-          "${widget.args.order.orderItems?.length} ${widget.args.order.orderItems!.length>1 ? "Plans" : "Plan"}",
+          // "${widget.args.order.orderItems?.length} ${widget.args.order.orderItems!.length>1 ? "Plans" : "Plan"}",
+          "Checkout",
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 15.0),
-            child: Center(
-              child: Text(
-                "₹ ${double.parse(totalPrice()!).toStringAsFixed(2)}",
-                style: Theme.of(context).appBarTheme.titleTextStyle,
-              ),
-            ),
-          ),
-        ],
       ),
       body: _isLoading
           ? Center(
@@ -1025,65 +1084,62 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             // const Divider(color: Colors.transparent),
                             // const Divider(color: Colors.transparent, height: 30),
                             Card(
-                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15)),
+                              elevation: 4,
                               color: Theme.of(context).scaffoldBackgroundColor,
-                              child: Column(
-                                children: [
-                                  // Divider(color: Colors.black54),
-                                  // Text(
-                                  //   "INVOICE",
-                                  //   style: TextStyle(
-                                  //       fontSize: 30, fontWeight: FontWeight.w500),
-                                  // ),
-                                  // Divider(color: Colors.black54),
-                                  const SizedBox(height: 10),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text('Sub Total'),
-                                      Text('₹ ${totalbasePrice()}'),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 5),
-                                  const SizedBox(height: 5),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text('Tax GST'),
-                                      Text('₹ ${totalgstPrice()}'),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 5),
-                                  const SizedBox(height: 5),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text('Discount'),
-                                      Text('₹ ${totalDiscount()}'),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Divider(color: Colors.black54),
-                                  const SizedBox(height: 5),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text('Grand Total'),
-                                      Text(
-                                        '₹ ${double.parse(totalPrice()!).toStringAsFixed(2)}',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 5),
-                                  // Divider(color: Colors.black54),
-                                  // const Divider(color: Colors.transparent),
-                                ],
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  children: [
+                                    const SizedBox(height: 10),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text('Sub Total'),
+                                        Text('₹ ${totalbasePrice()}'),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 5),
+                                    const SizedBox(height: 5),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text('Tax GST'),
+                                        Text('₹ ${totalgstPrice()}'),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 5),
+                                    const SizedBox(height: 5),
+                                    // Row(
+                                    //   mainAxisAlignment:
+                                    //       MainAxisAlignment.spaceBetween,
+                                    //   children: [
+                                    //     Text('Discount'),
+                                    //     Text('₹ ${totalDiscount()}'),
+                                    //   ],
+                                    // ),
+                                    Divider(color: Colors.black54),
+                                    const SizedBox(height: 5),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text('Grand Total'),
+                                        Text(
+                                          '₹ ${double.parse(totalPrice()!).toStringAsFixed(2)}',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 5),
+                                    // Divider(color: Colors.black54),
+                                    // const Divider(color: Colors.transparent),
+                                  ],
+                                ),
                               ),
                             ),
                             const Divider(color: Colors.transparent),
@@ -1106,9 +1162,15 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                     widget.args.canEdit != false ||
                                 convertToSale != false)
                               Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  (widget.args.order.party != null)
-                                  ? Text("Party name: ${widget.args.order.party?.name}")
+                                  (widget.args.payDue == true)
+                                  ? Row(
+                                    children: [
+                                      Text("Party name: " , style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
+                                      Text("${widget.args.order.party?.name}", textAlign: TextAlign.left,style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14))
+                                    ],
+                                  )
                                   : TypeAheadFormField<Party>(
                                     validator: (value) {
                                       final isEmpty =
@@ -1177,8 +1239,29 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                           party.name ?? "";
                                     },
                                   ),
-                                  const Divider(
-                                      color: Colors.transparent, height: 30),
+
+                                  const Divider(color: Colors.transparent, height: 30),
+                                  if(widget.args.payDue==false)
+                                  CustomTextField(
+                                    label: "Active Membership Validity",
+                                    value: validity.toString(),
+                                    inputType: TextInputType.number,
+                                    onChanged: (e) {
+                                      validity = int.parse(e);
+                                      print("validity is $validity");
+                                    },
+                                    validator: (e) {
+                                      if (e!.contains(",")) {
+                                        return '(,) characters are not allowed';
+                                      }
+                                      if (e.isEmpty) {
+                                        return "Please enter active membership validity";
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  if(widget.args.payDue==false)
+                                  const Divider(color: Colors.transparent, height: 30),
                                   if (widget.args.invoiceType !=
                                       OrderType.saleReturn)
                                     Column(
@@ -1187,11 +1270,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                           children: [
                                             Expanded(
                                               child: CustomDropDownField(
-                                                items: const <String> ["Cash","Credit","Bank Transfer","UPI"],
+                                                items: const <String> ["Cash","Bank Transfer","UPI"],
                                                 onSelected: (e) {
                                                   // widget.args.order.modeOfPayment = e;
-                                                  _modeOfPayControllers[0]
-                                                      .text = e;
+                                                  _modeOfPayControllers[0].text = e;
                                                   checkUpi();
                                                   checkCredit();
                                                   // if (widget.args.order.modeOfPayment ==
@@ -1218,43 +1300,28 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                             ),
                                             Expanded(
                                                 child: TextFormField(
-                                              enabled: !_singlePayMode,
+                                              enabled: true,
                                               controller: _amountControllers[0],
-                                              keyboardType: TextInputType
-                                                  .numberWithOptions(
-                                                      signed: false,
-                                                      decimal: true),
+                                              keyboardType: TextInputType.numberWithOptions(signed: false,decimal: true),
                                               decoration: InputDecoration(
-                                                  contentPadding:
-                                                      EdgeInsets.symmetric(
-                                                          vertical: 5,
-                                                          horizontal: 7),
+                                                  contentPadding: EdgeInsets.symmetric(vertical: 5, horizontal: 7),
                                                   label: Text("Amount"),
-                                                  border: OutlineInputBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              10))),
+                                                  border: OutlineInputBorder( borderRadius: BorderRadius.circular(10))),
                                               validator: (e) {
                                                 if (e!.contains(",")) {
                                                   return '(,) character are not allowed';
                                                 }
-                                                if (e.isNotEmpty) if (double
-                                                        .parse(e) >
-                                                    99999.0) {
+                                                if (e.isNotEmpty) if (double.parse(e) > 99999.0) {
                                                   return 'Maximum value is 99999';
                                                 }
                                                 return null;
                                               },
                                             )),
-                                            SizedBox(
-                                              width: 30,
-                                            ),
+                                            SizedBox(width: 30,),
                                           ],
                                         ),
 
-                                        SizedBox(
-                                          height: 10,
-                                        ),
+                                        SizedBox(height: 10,),
                                         // qr code image
                                         Column(
                                           children: [
@@ -1266,7 +1333,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                                       Expanded(
                                                         child:
                                                             CustomDropDownField(
-                                                          items: const <String> ["Cash","Credit","Bank Transfer","UPI"],
+                                                          items: const <String> ["Cash","Bank Transfer","UPI"],
                                                           onSelected: (e) {
                                                             _modeOfPayControllers[i].text = e;
                                                             checkUpi();
@@ -1292,47 +1359,29 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                                         decoration: InputDecoration(
                                                             contentPadding:EdgeInsets.symmetric(vertical: 5,horizontal:7),
                                                             label:Text("Amount"),
-                                                            border: OutlineInputBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            10))),
+                                                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
                                                         validator: (e) {
-                                                          if (e!
-                                                              .contains(",")) {
+                                                          if (e!.contains(",")) {
                                                             return '(,) character are not allowed';
                                                           }
-                                                          if (e
-                                                              .isNotEmpty) if (double
-                                                                  .parse(e) >
-                                                              99999.0) {
+                                                          if (e.isNotEmpty) if (double.parse(e) > 99999.0) {
                                                             return 'Amount not correct';
                                                           }
                                                           return null;
                                                         },
                                                       )),
-                                                      SizedBox(
-                                                        width: 5,
-                                                      ),
-                                                      i == _modeOfPayControllers.length -1
-                                                          ? InkWell(
-                                                              onTap: () =>
-                                                                  _removePaymentMethodField(
-                                                                      i),
+                                                      SizedBox(width: 5,),
+                                                      i == _modeOfPayControllers.length -1 ?
+                                                      InkWell( onTap: () => _removePaymentMethodField(i),
                                                               child: Container(
-                                                                width:
-                                                                    25, // Adjust the width as needed
+                                                                width: 25, // Adjust the width as needed
                                                                 child: Icon(
-                                                                  Icons
-                                                                      .remove_circle,
-                                                                  color: Colors
-                                                                      .red,
+                                                                  Icons.remove_circle,
+                                                                  color: Colors.red,
                                                                 ),
                                                               ),
                                                             )
-                                                          : SizedBox(
-                                                              width: 25,
-                                                            )
+                                                          : SizedBox(width: 25,)
                                                     ],
                                                   ),
                                                   SizedBox(
@@ -1344,51 +1393,32 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                         ),
                                         Row(
                                             //add payment mode button
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.start,
                                             children: [
                                               InkWell(
                                                 onTap: () {
-                                                  if (_modeOfPayControllers
-                                                          .length <
-                                                      4) {
+                                                  if (_modeOfPayControllers.length <3) {
                                                     _addPaymentMethodField();
                                                   }
                                                 },
                                                 child: Container(
                                                   padding:
-                                                      const EdgeInsets.only(
-                                                          left: 18,
-                                                          right: 20,
-                                                          top: 8,
-                                                          bottom: 8),
+                                                      const EdgeInsets.only( left: 18, right: 20, top: 8, bottom: 8),
                                                   decoration: ShapeDecoration(
                                                     // color: const Color(0xFF1E232C),
                                                     color: Colors.grey[100],
                                                     shape: RoundedRectangleBorder(
-                                                        side: const BorderSide(
-                                                            color:
-                                                                Colors.black),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(18)),
+                                                        side: const BorderSide( color: Colors.black),
+                                                        borderRadius: BorderRadius.circular(18)),
                                                   ),
                                                   child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .center,
+                                                    mainAxisSize:MainAxisSize.min,
+                                                    mainAxisAlignment:MainAxisAlignment.center,
+                                                    crossAxisAlignment:CrossAxisAlignment.center,
                                                     children: [
                                                       Icon(
                                                         Icons.add_circle,
-                                                        color:
-                                                            _modeOfPayControllers
-                                                                        .length >=
-                                                                    4
+                                                        color: _modeOfPayControllers.length >=3
                                                                 ? Colors.grey
                                                                 : Colors.green,
                                                       ),
@@ -1398,16 +1428,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                                       Text(
                                                         'Payment Mode',
                                                         style: TextStyle(
-                                                          color: _modeOfPayControllers
-                                                                      .length >=
-                                                                  4
+                                                          color: _modeOfPayControllers.length >=4
                                                               ? Colors.grey
                                                               : Colors.black,
                                                           fontSize: 14,
-                                                          fontFamily:
-                                                              'Urbanist',
-                                                          fontWeight:
-                                                              FontWeight.w500,
+                                                          fontFamily:'Urbanist',
+                                                          fontWeight:FontWeight.w500,
                                                         ),
                                                       ),
                                                     ],
@@ -1426,33 +1452,22 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                             child: UPIPaymentQRCode(
                                               upiDetails: _myUpiId!,
                                               size: 200,
-                                              embeddedImagePath:
-                                                  'assets/icon/BharatPos.png',
-                                              embeddedImageSize:
-                                                  const Size(40, 40),
-                                              upiQRErrorCorrectLevel:
-                                                  UPIQRErrorCorrectLevel.high,
+                                              embeddedImagePath:'assets/icon/BharatPos.png',
+                                              embeddedImageSize:const Size(40, 40),
+                                              upiQRErrorCorrectLevel:UPIQRErrorCorrectLevel.high,
                                               qrCodeLoader: Center(
-                                                  child:
-                                                      CircularProgressIndicator()),
+                                                  child:CircularProgressIndicator()),
                                             ),
                                           ),
                                         if (_isUPI)
-                                          SizedBox(
-                                            height: 20,
-                                          ),
+                                          SizedBox(height: 20,),
                                         if (_isUPI)
                                           Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
+                                            mainAxisAlignment:MainAxisAlignment.center,
                                             children: [
-                                              Text(
-                                                'Upi id: ',
-                                              ),
+                                              Text('Upi id: ',),
                                               // to copy upi id
-                                              SelectableText(
-                                                _myUpiId!.upiID,
-                                              )
+                                              SelectableText(_myUpiId!.upiID,)
                                             ],
                                           ),
                                       ],
@@ -1466,9 +1481,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                   isBillTo = val;
                                   setState(() {});
                                 }),
-                            SizedBox(
-                              height: 5,
-                            ),
+                            SizedBox(height: 5,),
                             Visibility(
                               visible: isBillTo,
                               child: Column(
@@ -1485,28 +1498,28 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                       setState(() {});
                                     },
                                   ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                  TextFormField(
-                                    controller: businessNameController,
-                                    decoration: InputDecoration(
-                                        label: Text("Business Name"),
-                                        border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10))),
-                                    onChanged: (val) {
-                                      widget.args.order.businessName = val;
-                                      setState(() {});
-                                    },
-                                  ),
+                                  // SizedBox(
+                                  //   height: 10,
+                                  // ),
+                                  // TextFormField(
+                                  //   controller: businessNameController,
+                                  //   decoration: InputDecoration(
+                                  //       label: Text("Business Name"),
+                                  //       border: OutlineInputBorder(
+                                  //           borderRadius:
+                                  //               BorderRadius.circular(10))),
+                                  //   onChanged: (val) {
+                                  //     widget.args.order.businessName = val;
+                                  //     setState(() {});
+                                  //   },
+                                  // ),
                                   SizedBox(
                                     height: 10,
                                   ),
                                   TextFormField(
                                     controller: businessAddressController,
                                     decoration: InputDecoration(
-                                        label: Text("Business Address"),
+                                        label: Text("Receiver Address"),
                                         border: OutlineInputBorder(
                                             borderRadius:
                                                 BorderRadius.circular(10))),
@@ -1515,36 +1528,36 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                       setState(() {});
                                     },
                                   ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                  TextFormField(
-                                    controller: gstController,
-                                    decoration: InputDecoration(
-                                        label: Text("GSTIN"),
-                                        border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10))),
-                                    onChanged: (val) {
-                                      widget.args.order.gst = val;
-                                      setState(() {});
-                                    },
-                                  ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                  TextFormField(
-                                    controller: dlNumController,
-                                    decoration: InputDecoration(
-                                        label: Text("DL Number"),
-                                        border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10))),
-                                    onChanged: (val) {
-                                      // widget.args.order.dlNum = val;
-                                      setState(() {});
-                                    },
-                                  ),
+                                  // SizedBox(
+                                  //   height: 10,
+                                  // ),
+                                  // TextFormField(
+                                  //   controller: gstController,
+                                  //   decoration: InputDecoration(
+                                  //       label: Text("GSTIN"),
+                                  //       border: OutlineInputBorder(
+                                  //           borderRadius:
+                                  //               BorderRadius.circular(10))),
+                                  //   onChanged: (val) {
+                                  //     widget.args.order.gst = val;
+                                  //     setState(() {});
+                                  //   },
+                                  // ),
+                                  // SizedBox(
+                                  //   height: 10,
+                                  // ),
+                                  // TextFormField(
+                                  //   controller: dlNumController,
+                                  //   decoration: InputDecoration(
+                                  //       label: Text("DL Number"),
+                                  //       border: OutlineInputBorder(
+                                  //           borderRadius:
+                                  //               BorderRadius.circular(10))),
+                                  //   onChanged: (val) {
+                                  //     // widget.args.order.dlNum = val;
+                                  //     setState(() {});
+                                  //   },
+                                  // ),
                                   SizedBox(
                                     height: 300,
                                   ),
@@ -1623,21 +1636,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
-  void _onTapShare(int type) async {
-    locator<GlobalServices>().showBottomSheetLoader();
-    // try {
-    //   // final res = await UserService.me();
-    //   // if ((res.statusCode ?? 400) < 300) {
-    //     // final user = User.fromMap(res.data['user']);
-    //     // if (type == 0) _viewPdfwithgst(user);
-    //     // if (type == 1) _viewPdfwithoutgst(user);
-
-    //   }
-    // } catch (_) {}
-    if (type == 2) _viewPdf();
-    Navigator.pop(context);
-  }
-
   bool checkAmounts() {
     if (!_singlePayMode) {
       var inputAmount = 0.0;
@@ -1665,11 +1663,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
     }
     return true;
   }
-  void includePayments(){
-    widget.args.order.modeOfPayment = [];
 
+  bool includePayments(){
+    for(int i = 0;i<_amountControllers.length;i++){
+      if(_amountControllers[i].text.isEmpty){
+        locator<GlobalServices>().errorSnackBar('Amounts cannot be empty');
+        return false;
+      }
+    }
+    print("executing include payments");
+    widget.args.order.modeOfPayment = [];
     if (_singlePayMode) {
-      _amountControllers[0].text = totalPrice()!;
       var defaultPayment = {
         "mode": _modeOfPayControllers[0].text,
         "amount": double.parse(_amountControllers[0].text)
@@ -1691,53 +1695,69 @@ class _CheckoutPageState extends State<CheckoutPage> {
         }
       }
     }
+    return true;
+  }
+  _onTotalChange(MembershipPlanModel membership, String? discountedPrice) {
+    membership.sellingPrice = double.parse(discountedPrice!);
+    print(membership.sellingPrice);
+    double newBasePrice = (membership.sellingPrice! * 100.0) / (100.0 + double.parse(membership.gstRate == 'null' ? '0.0' : membership.gstRate!));
+    membership.basePrice = newBasePrice.toString();
+    double newGst = membership.sellingPrice! - newBasePrice;
+    membership.igst = newGst.toStringAsFixed(2);
+    membership.cgst = (newGst / 2).toStringAsFixed(2);
+    membership.sgst = (newGst / 2).toStringAsFixed(2);
+  }
+  _onSubtotalChange(MembershipPlanModel membership, String? localSellingPrice) async {
+    //Base Price = Selling Price / (1 + (GST Rate / 100))
+    double bsp = double.parse(localSellingPrice!)/(1 + (double.parse(membership.gstRate == 'null' ? '0' : membership.gstRate!) / 100));
+    membership.basePrice = bsp.toStringAsFixed(2);
+    double gstAmt = bsp * (double.parse(membership.gstRate == 'null' ? '0' : membership.gstRate!) / 100);
+    membership.igst = gstAmt.toStringAsFixed(2);
+
+    membership.cgst = (gstAmt / 2).toStringAsFixed(2);
+    // print(membership.salecgst);
+
+    membership.sgst = (gstAmt / 2).toStringAsFixed(2);
+    // print(membership.salesgst);
+
+    membership.sellingPrice = double.parse(membership.basePrice!.toString()) + gstAmt;
+    print(membership.sellingPrice);
   }
   void _onTapSubmit() async {
     _formKey.currentState?.save();
     if (_formKey.currentState?.validate() ?? false) {
-      // print("discountttttttt=${widget.args.order.orderItems![0].discountAmt}");
-      print(widget.args.order);
-      print(totalPrice());
-      print(totalbasePrice());
-      print(totalgstPrice());
-      widget.args.order.modeOfPayment = [];
 
-      if (_singlePayMode) {
-        _amountControllers[0].text = totalPrice()!;
-        var defaultPayment = {
-          "mode": _modeOfPayControllers[0].text,
-          "amount": double.parse(_amountControllers[0].text)
-        };
-        widget.args.order.modeOfPayment?.add(defaultPayment);
-      } else {
-        for (int i = 0; i < _modeOfPayControllers.length; i++) {
-          if (_modeOfPayControllers[i].text.isNotEmpty) {
-            var newPayment = {
-              "mode": _modeOfPayControllers[i].text,
-              "amount": 0
-            };
-            if (_amountControllers[i].text.isNotEmpty) {
-              newPayment["amount"] = double.parse(_amountControllers[i].text);
-            } else {
-              newPayment["amount"] = "0";
-            }
-            widget.args.order.modeOfPayment?.add(newPayment);
-          }
-        }
-      }
+      bool paymentValidation = includePayments();
+
+      // if(widget.args.payDue == true) { //condition for paying less amount than due
+      //   for (int i = 0; i < widget.args.order.orderItems!.length; i++) {
+      //     OrderItemInput orderItem = widget.args.order.orderItems![i];
+      //     double? totalInputAmount = widget.args.order.modeOfPayment?.fold<double>(0, (acc, curr) {
+      //       return curr['amount'] + acc;
+      //     });
+      //     if(orderItem.membership?.gstRate!="null"){
+      //       if(orderItem.membership!.GSTincluded!){
+      //         _onTotalChange(orderItem.membership!, totalInputAmount?.toStringAsFixed(2));
+      //       }else{
+      //         _onSubtotalChange(orderItem.membership!, totalInputAmount?.toStringAsFixed(2));
+      //       }
+      //     }else{
+      //         _onTotalChange(orderItem.membership!, totalInputAmount?.toStringAsFixed(2));
+      //     }
+      //   }
+      if(paymentValidation)
+        calculate();
+      // }
+
 
       salesInvoiceNo = await _checkoutCubit.getSalesNum() as int;
-      // print("lilne 1310 in checkout.dart");
-      // print("sales invoice no is: $salesInvoiceNo");
 
-       if (widget.args.invoiceType == OrderType.sale) {
-        if(checkAmounts()){
+       if (widget.args.invoiceType == OrderType.sale && paymentValidation) {
           if(widget.args.payDue==false){
-            _checkoutCubit.createSalesOrder(widget.args.order,(salesInvoiceNo + 1).toString());
+            _checkoutCubit.createSalesOrder(widget.args.order,(salesInvoiceNo + 1).toString(), validity);
           }else{
             _checkoutCubit.payDue(widget.args.order,(salesInvoiceNo + 1).toString());
           }
-        }
       }
 
     }
@@ -1760,16 +1780,16 @@ Future<void> _launchUrl(mobNum, user,List<Map<String, dynamic>>? paymethod, sub,
   final String invoiceNumber = "%0AMobile%20Number%3A%20${user.phoneNumber}";
   final String dash1 = "%0A------------------------------------";
   final String tableHead =
-      "%0A%20%20%20%20%20ITEM%20%20%20%20%20QTY%20%20%20%20%20PRICE%20%20%20%20%20TOTAL";
+      "%0A%20%20%20%20%20ITEM%20%20%20%20%20Validity%20%20%20%20%20PRICE%20%20%20%20%20TOTAL";
   String x = "";
   for (int i = 0; i < items.length; i++) {
-    if (items[i].membership.name.length <= 4) {
+    if (items[i].membership.plan.length <= 4) {
       x = x +
-          "%0A%09%09%09${items[i].membership.name}%09%09%20%09%09%09${items[i].quantity}%09%09%09%09%09%09${items[i].membership.sellingPrice}%09%09%09%09%09%09%09${items[i].membership.sellingPrice * items[i].quantity}";
+          "%0A%09%09%09${items[i].membership.plan}%09%09%20%09%09%09${items[i].membership.validity}%09%09%09%09%09%09${items[i].membership.sellingPrice}%09%09%09%09%09%09%09${items[i].membership.sellingPrice * items[i].quantity}";
     } else {
       x = x +
-          "%0A%09%09%09${items[i].membership.name.substring(0, 4)}%09%09%20%09%09%09${items[i].quantity}%09%09%09%09%09%09${items[i].membership.sellingPrice}%09%09%09%09%09%09%09${items[i].membership.sellingPrice * items[i].quantity}";
-      x = x + "%0A%09%09%09${items[i].membership.name.substring(4)}";
+          "%0A%09%09%09${items[i].membership.plan.substring(0, 4)}%09%09%20%09%09%09${items[i].quantity}%09%09%09%09%09%09${items[i].membership.sellingPrice}%09%09%09%09%09%09%09${items[i].membership.sellingPrice * items[i].quantity}";
+      x = x + "%0A%09%09%09${items[i].membership.plan.substring(4)}";
     }
   }
   /* final String tableData1 =

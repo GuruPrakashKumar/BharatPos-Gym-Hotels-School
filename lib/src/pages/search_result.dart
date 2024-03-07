@@ -140,6 +140,7 @@ class _SearchProductListScreenState extends State<SearchProductListScreen> {
     if (!canSelect) {
       return;
     }
+    _memberships.clear();
     _memberships.add(membership);
     setState(() {});
   }
@@ -170,7 +171,7 @@ class _SearchProductListScreenState extends State<SearchProductListScreen> {
         appBar: AppBar(
           elevation: 0,
           title: Text(
-            "Product List",
+            "Plan List",
             style: TextStyle(color: Colors.black, fontSize: height / 45, fontFamily: 'GilroyBold'),
           ),
           centerTitle: true,
@@ -212,10 +213,17 @@ class _SearchProductListScreenState extends State<SearchProductListScreen> {
                           );
                           return;
                         }
-                        Navigator.pop(
-                          context,
-                          _memberships,
+                        final _orderItems = _memberships.map((e) => OrderItemInput(membership: e,))
+                            .toList();
+                        Order _Order = Order(
+                          kotId: "",
+                          orderItems: _orderItems
                         );
+                        Navigator.pushNamed(context, CheckoutPage.routeName, arguments: CheckoutPageArgs(invoiceType: OrderType.sale, order: _Order));
+                        // Navigator.pop(
+                        //   context,
+                        //   _memberships,
+                        // );
                       }),
                 ),
               if (widget.args?.isSelecting ?? false) const SizedBox(width: 20),
@@ -250,7 +258,7 @@ class _SearchProductListScreenState extends State<SearchProductListScreen> {
                   ? Center(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 15),
-                        child: Text('No products found!'),
+                        child: Text('No plans found!'),
                       ),
                     )
                   : Expanded(
@@ -285,10 +293,16 @@ class _SearchProductListScreenState extends State<SearchProductListScreen> {
                                           //then when we again press the card the opposite should happen
                                           print("value of q $q");//q represents item quantity
                                           if (q == 0) {
+                                            print("if part");
                                             _selectProduct(planList[index]);
                                             itemCheckedFlag = true;
                                           } else if (q <= 1) {
-                                            removePlan(planList[index]);
+                                            print("else part");
+                                            if(_memberships.isEmpty){
+                                              removePlan(planList[index]);
+                                            }else{
+                                              _selectProduct(planList[index]);
+                                            }
                                             itemCheckedFlag = false;
                                           }
 

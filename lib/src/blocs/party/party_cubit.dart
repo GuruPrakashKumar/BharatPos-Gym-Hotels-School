@@ -73,12 +73,15 @@ class PartyCubit extends Cubit<PartyState> {
     emit(PartyLoading());
     try {
       final response = await _partyService.getAllDues();
-      print("response.data while getting the parties: ${response.data}");
       final parties = List.generate(
         response.data['dues'].length,
-        (i) => Party.fromMapTemp(response.data['dues'][i]['party'], response.data['dues'][i]['due'].toDouble()),
+        (i) => Party.fromMapTemp(response.data['dues'][i]['party'], response.data['dues'][i]['totalDues'].toDouble()),
       );
-      return emit(PartyListRender(parties));
+      final resp = await _partyService.getParties();
+      print("response.data while getting the parties: ${resp.data}");
+      final inactiveParties = List.generate(resp.data['allParty'].length,
+              (i) => Party.fromMap(resp.data['allParty'][i]));
+      return emit(PartyListRender(parties, inactiveParties));
     } catch (err) {
       emit(PartyError("Error fetching parties"));
     }

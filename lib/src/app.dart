@@ -54,7 +54,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    getpermission();
+    // getpermission();
   }
   void getpermission() async {
     try {

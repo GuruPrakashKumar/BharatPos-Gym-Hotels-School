@@ -33,7 +33,7 @@ class MembershipPlanInput{
       "validity": validity,
       "sellingPrice": sellingPrice,
       if(gst) "basePrice": basePrice,
-      "GSTincluded": GSTincluded,
+      if(gst) "GSTincluded": GSTincluded,
       if(gst) "GSTRate": gstRate,
       if(gst) "CGST": cgst,
       if(gst) "SGST": sgst,

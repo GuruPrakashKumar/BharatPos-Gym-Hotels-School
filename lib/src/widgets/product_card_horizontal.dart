@@ -58,7 +58,6 @@ class _ProductCardHorizontalState extends State<ProductCardHorizontal> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-          print("select flag on tap= $selectFlag");
           widget.onTap(selectFlag);
           setState(() {});
           if(selectFlag==1){
@@ -173,7 +172,7 @@ class _ProductCardHorizontalState extends State<ProductCardHorizontal> {
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text('GST @${widget.membership.gstRate}%'),
+                                      Text('GST @${widget.membership.gstRate=="null" ? "0" : widget.membership.gstRate}%'),
                                       Text('₹ ${widget.membership.igst == "null" ? "0" : double.parse(widget.membership.igst!).toStringAsFixed(2)}'),
                                     ],
                                   ),

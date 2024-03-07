@@ -208,6 +208,12 @@ class _CreatePlanState extends State<CreatePlan> {
                       onChanged: (e) {
                         _formInput.plan = e;
                       },
+                      validator: (e) {
+                        if (e!.isEmpty) {
+                          return "Please enter plan name";
+                        }
+                        return null;
+                      },
                     ),
                     const Divider(color: Colors.transparent),
                     CustomTextField(
@@ -327,7 +333,7 @@ class _CreatePlanState extends State<CreatePlan> {
                               calculate();
                             },
                             validator: (e) {
-                              if (!gstSwitch && e == "") return "Enter Rate";
+                              if (gstSwitch && e!.isEmpty) return "Enter Rate";
                             },
                           ),
                           const Divider(color: Colors.transparent),
@@ -356,8 +362,15 @@ class _CreatePlanState extends State<CreatePlan> {
                     CustomTextField(
                       label: 'Validity',
                       value: _formInput.validity,
+                      inputType: TextInputType.number,
                       onChanged: (e) {
                         _formInput.validity = e;
+                      },
+                      validator: (e) {
+                        if (e!.isEmpty) {
+                          return "Please enter validity";
+                        }
+                        return null;
                       },
                     ),
                     const Divider(color: Colors.transparent, height: 40),
@@ -368,8 +381,11 @@ class _CreatePlanState extends State<CreatePlan> {
 
                         if (_formKey.currentState?.validate() ?? false) {
                           _formInput.plan = "${_formInput.plan} $additionalInformation";
+                          print("gstswitch is $gstSwitch includedExcludedRadioButton is $includedExcludedRadioButton and _form.gstincluded is ${_formInput.GSTincluded}");
+                          if(gstSwitch && includedExcludedRadioButton==1) _formInput.GSTincluded = true;
+
                           _productCubit.createPlan(_formInput);
-                          Navigator.pop(context);
+                          // Navigator.pop(context);
                         }
                       },
                     ),

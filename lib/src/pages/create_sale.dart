@@ -398,6 +398,7 @@ class _CreateSaleState extends State<CreateSale> {
     setState(() {
       _Order.orderItems?.addAll(orderItems);
     });
+    print("on add manually last line ${_Order.orderItems?[0].toSaleMap()}");
   }
 
   void showaddDiscountDialouge(double basesellingprice, List<OrderItemInput> _orderItems, int index) async {

@@ -146,9 +146,6 @@ class OrderItemInput {
           json["originalbaseSellingPrice"] == null || json["originalbaseSellingPrice"] == "null" ? "0.0" : double.parse(json["originalbaseSellingPrice"].toString()).toStringAsFixed(2));
 
   factory OrderItemInput.fromMapForLocalDatabase(Map<String, dynamic> json){
-    print("line 126 in order.dart");
-    // print(json);
-    print(json["product"] is Map);
     return OrderItemInput(
       price: double.parse(json['price'].toString()) ?? 0,
       quantity: json['quantity']!= null? json['quantity'].toDouble() : 0.0,

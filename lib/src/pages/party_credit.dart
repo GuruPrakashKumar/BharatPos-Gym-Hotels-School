@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
@@ -9,6 +11,7 @@ import 'package:shopos/src/blocs/specific%20party/specific_party_cubit.dart';
 import 'package:shopos/src/blocs/specific%20party/specific_party_state.dart';
 import 'package:shopos/src/config/colors.dart';
 import 'package:shopos/src/models/input/order.dart';
+import 'package:shopos/src/models/membershipPlan_model.dart';
 
 import 'package:shopos/src/models/party.dart';
 import 'package:shopos/src/models/user.dart';
@@ -29,7 +32,8 @@ class ScreenArguments {
   final String? guardianName;
   final int tabbarNo;
 
-  ScreenArguments(this.partyId, this.partName, this.partyContactNo, this.tabbarNo, this.guardianName, this.partyAddress);
+  ScreenArguments(this.partyId, this.partName, this.partyContactNo,
+      this.tabbarNo, this.guardianName, this.partyAddress);
 }
 
 class PartyCreditPage extends StatefulWidget {
@@ -62,7 +66,9 @@ class _PartyCreditPageState extends State<PartyCreditPage> {
   void fetchdata() async {
     print("line 60 in party_credit");
     // widget.args.tabbarNo == 0 ? _specificpartyCubit.getInitialCreditHistory(widget.args.partyId) : _specificpartyCubit.getInitialpurchasedHistory(widget.args.partyId);
-    widget.args.tabbarNo == 0 ? _specificpartyCubit.getAllActiveMembership(widget.args.partyId): print("nothing happend");
+    widget.args.tabbarNo == 0
+        ? _specificpartyCubit.getAllActiveMembership(widget.args.partyId)
+        : _specificpartyCubit.getAllActiveMembership(widget.args.partyId);
     print("line 62 in party_credit");
 
     final response = await UserService.me();
@@ -117,19 +123,19 @@ class _PartyCreditPageState extends State<PartyCreditPage> {
               "assets/images/teamwork.png",
               height: 30,
             ),
-            SizedBox(
-              width: 10,
-            ),
             Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.args.partName),
+                Text(
+                  widget.args.partName,
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 Text(
                   widget.args.partyContactNo,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
             ),
+            SizedBox(width: 30,)
           ],
         ),
         centerTitle: true,
@@ -162,53 +168,164 @@ class _PartyCreditPageState extends State<PartyCreditPage> {
                       // print(order.createdAt);
                       return Card(
                         elevation: 3,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
                         child: Padding(
-                          padding: EdgeInsets.all(8),
+                          padding: EdgeInsets.all(14),
                           child: Column(
                             children: [
-                              GestureDetector(
-                                  onTap: () {
-                                    //this varibale is used to  show the circular progress indicator  when button is pressed
-                                    // whatsappButtonPressed = true;
-                                    setState(() {});
-                                    Future.delayed(Duration(seconds: 1), () {
-                                      _launchUrl(user!.businessName!, "+91" + widget.args.partyContactNo, activeMem.due!);
-                                    });
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Image.asset(
-                                      "assets/images/whats.png",
-                                      height: 30,
-                                      width: 30,
+                              Row(
+                                children: [
+                                  Expanded(
+                                    flex: 9,
+                                    child: Text(
+                                      "${activeMem.membership?.plan}",
+                                      textAlign: TextAlign.left,
+                                      style: Theme.of(context).textTheme.headline6,
                                     ),
-                                  )),
-                              Text("Plan name: ${activeMem.membership?.plan}"),
-                              Text("Plan validity: ${activeMem.membership!.validity}"),
-                              Text("Last Paid: ${currentdate(activeMem.lastPaid!)}"),
-                              Text("Active Membership validity: ${activeMem.validity}"),
-                              Text("Active status: ${activeMem.activeStatus}"),
-                              Text("Due: ${activeMem.due}"),
-                              // if(activeMem.due!>0)//todo: uncomment this line
-                              CustomButton(title: "Pay Due", onTap: (){
-                                Order order = Order(
-                                  orderItems: [OrderItemInput(membership: activeMem.membership)],
-                                  party: Party(
-                                    id: widget.args.partyId,
-                                    name: widget.args.partName,
-                                    phoneNumber: widget.args.partyContactNo,
-                                    type: "customer",
-                                    address: widget.args.partyAddress,
-                                    guardianName: widget.args.guardianName
+                                  ),
+                                  Expanded(
+                                    flex: 3,
+                                    child: GestureDetector(
+                                        onTap: () {
+                                          //this varibale is used to  show the circular progress indicator  when button is pressed
+                                          // whatsappButtonPressed = true;
+                                          setState(() {});
+                                          Future.delayed(Duration(seconds: 1),
+                                              () {
+                                            _launchUrl(
+                                                user!.businessName!,
+                                                "+91" +
+                                                    widget.args.partyContactNo,
+                                                activeMem.due!);
+                                          });
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(12),
+                                          child: Image.asset(
+                                            "assets/images/whats.png",
+                                            height: 30,
+                                            width: 30,
+                                          ),
+                                        )),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 3,
+                              ),
+                              Container(
+                                color: Colors.black,
+                                height: 1,
+                              ),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    "Plan validity: ",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    "${activeMem.membership!.validity}",
                                   )
-                                  //todo: for bill like businessName etc (we have not sufficient data here for now)
-                                );
-                                Navigator.pushNamed(
-                                    context,
-                                    CheckoutPage.routeName,
-                                    arguments: CheckoutPageArgs(invoiceType: OrderType.sale, order: order, payDue: true));
-                              })
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 5,
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    "Last Paid: ",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    "${currentdate(activeMem.lastPaid!)}",
+                                  )
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 5,
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    "Active Membership validity: ",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    "${activeMem.validity}",
+                                  )
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 5,
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    "Active status: ",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    "${activeMem.activeStatus}",
+                                  )
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 5,
+                              ),
+                              Row(
+                                children: [
+                                  Text("Due: ",style:TextStyle(fontWeight: FontWeight.bold),),
+                                  Text(
+                                    "${activeMem.due}",
+                                  )
+                                ],
+                              ),
+                              if(activeMem.due!>0)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  CustomButton(
+                                      paddingOutside: 10,
+                                      title: "Pay Due",
+                                      onTap: () {
+                                        _onTotalChange(activeMem.membership!, activeMem.due?.toStringAsFixed(2));
+                                        Order order = Order(
+                                            orderItems: [
+                                              OrderItemInput(
+                                                quantity: 1,
+                                                price: activeMem.due,
+                                                  membership: activeMem.membership)
+                                            ],
+                                            party: Party(
+                                                id: widget.args.partyId,
+                                                name: widget.args.partName,
+                                                phoneNumber:
+                                                    widget.args.partyContactNo,
+                                                type: "customer",
+                                                address:
+                                                    widget.args.partyAddress,
+                                                guardianName:
+                                                    widget.args.guardianName)
+                                            //todo: for bill like businessName etc (we have not sufficient data here for now)
+                                            );
+                                        Navigator.pushNamed(
+                                            context, CheckoutPage.routeName,
+                                            arguments: CheckoutPageArgs(
+                                                invoiceType: OrderType.sale,
+                                                order: order,
+                                                payDue: true));
+                                      }),
+                                ],
+                              )
                             ],
                           ),
                         ),
@@ -380,7 +497,24 @@ class _PartyCreditPageState extends State<PartyCreditPage> {
       // ),
     );
   }
+  _onTotalChange(MembershipPlanModel membership, String? discountedPrice) {
+    membership.sellingPrice = double.parse(discountedPrice!);
+    // print(product.gstRate);
 
+    double newBasePrice = (membership.sellingPrice! * 100.0) / (100.0 + double.parse(membership.gstRate == 'null' ? '0.0' : membership.gstRate!));
+
+    membership.basePrice = newBasePrice.toString();
+
+    double newGst = membership.sellingPrice! - newBasePrice;
+
+    membership.igst = newGst.toStringAsFixed(2);
+
+    membership.cgst = (newGst / 2).toStringAsFixed(2);
+    // print(product.salecgst);
+
+    membership.sgst = (newGst / 2).toStringAsFixed(2);
+    // print(product.salesgst);
+  }
 
   Future<void> _launchUrl(String name, String mobile, double due) async {
     String Message =
@@ -604,7 +738,6 @@ class _PartyCreditPageState extends State<PartyCreditPage> {
     return '${createdAt.day.toString()}.${createdAt.month.toString()}.${createdAt.year.toString()} | $outputTime';
   }
 
-
   Future<bool?> _showPinDialog() {
     return showDialog(
         context: context,
@@ -642,7 +775,8 @@ class _PartyCreditPageState extends State<PartyCreditPage> {
                     child: CustomButton(
                         title: 'Verify',
                         onTap: () async {
-                          bool status = await _pinService.verifyPin(int.parse(pinController.text.toString()));
+                          bool status = await _pinService.verifyPin(
+                              int.parse(pinController.text.toString()));
                           print(status);
                           if (status) {
                             pinController.clear();

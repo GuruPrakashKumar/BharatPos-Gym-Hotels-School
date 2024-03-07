@@ -124,32 +124,32 @@ class _ReportsPageState extends State<ReportsPage> {
                       },
                       title: const Text("Sale Report"),
                     ),
-                    CheckboxListTile(
-                      controlAffinity: ListTileControlAffinity.leading,
-                      value: _reportInput.type == ReportType.saleReturn,
-                      activeColor: ColorsConst.primaryColor,
-                      checkboxShape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      contentPadding: const EdgeInsets.all(0),
-                      onChanged: (value) {
-                        _toggleReportType(ReportType.saleReturn);
-                      },
-                      title: const Text("Sale Return Report"),
-                    ),
-                    CheckboxListTile(
-                      controlAffinity: ListTileControlAffinity.leading,
-                      value: _reportInput.type == ReportType.purchase,
-                      activeColor: ColorsConst.primaryColor,
-                      checkboxShape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      onChanged: (value) {
-                        _toggleReportType(ReportType.purchase);
-                      },
-                      contentPadding: const EdgeInsets.all(0),
-                      title: const Text("Purchase Report"),
-                    ),
+                    // CheckboxListTile(
+                    //   controlAffinity: ListTileControlAffinity.leading,
+                    //   value: _reportInput.type == ReportType.saleReturn,
+                    //   activeColor: ColorsConst.primaryColor,
+                    //   checkboxShape: RoundedRectangleBorder(
+                    //     borderRadius: BorderRadius.circular(4),
+                    //   ),
+                    //   contentPadding: const EdgeInsets.all(0),
+                    //   onChanged: (value) {
+                    //     _toggleReportType(ReportType.saleReturn);
+                    //   },
+                    //   title: const Text("Sale Return Report"),
+                    // ),
+                    // CheckboxListTile(
+                    //   controlAffinity: ListTileControlAffinity.leading,
+                    //   value: _reportInput.type == ReportType.purchase,
+                    //   activeColor: ColorsConst.primaryColor,
+                    //   checkboxShape: RoundedRectangleBorder(
+                    //     borderRadius: BorderRadius.circular(4),
+                    //   ),
+                    //   onChanged: (value) {
+                    //     _toggleReportType(ReportType.purchase);
+                    //   },
+                    //   contentPadding: const EdgeInsets.all(0),
+                    //   title: const Text("Purchase Report"),
+                    // ),
                     CheckboxListTile(
                       contentPadding: const EdgeInsets.all(0),
                       activeColor: ColorsConst.primaryColor,
@@ -163,32 +163,32 @@ class _ReportsPageState extends State<ReportsPage> {
                       },
                       title: const Text("Expense Report"),
                     ),
-                    CheckboxListTile(
-                      contentPadding: const EdgeInsets.all(0),
-                      activeColor: ColorsConst.primaryColor,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      value: _reportInput.type == ReportType.stock,
-                      checkboxShape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      onChanged: (value) {
-                        _toggleReportType(ReportType.stock);
-                      },
-                      title: const Text("Stock Report"),
-                    ),
-                    CheckboxListTile(
-                      contentPadding: const EdgeInsets.all(0),
-                      activeColor: ColorsConst.primaryColor,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      value: _reportInput.type == ReportType.estimate,
-                      checkboxShape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      onChanged: (value) {
-                        _toggleReportType(ReportType.estimate);
-                      },
-                      title: const Text("Estimate Report"),
-                    ),
+                    // CheckboxListTile(
+                    //   contentPadding: const EdgeInsets.all(0),
+                    //   activeColor: ColorsConst.primaryColor,
+                    //   controlAffinity: ListTileControlAffinity.leading,
+                    //   value: _reportInput.type == ReportType.stock,
+                    //   checkboxShape: RoundedRectangleBorder(
+                    //     borderRadius: BorderRadius.circular(4),
+                    //   ),
+                    //   onChanged: (value) {
+                    //     _toggleReportType(ReportType.stock);
+                    //   },
+                    //   title: const Text("Stock Report"),
+                    // ),
+                    // CheckboxListTile(
+                    //   contentPadding: const EdgeInsets.all(0),
+                    //   activeColor: ColorsConst.primaryColor,
+                    //   controlAffinity: ListTileControlAffinity.leading,
+                    //   value: _reportInput.type == ReportType.estimate,
+                    //   checkboxShape: RoundedRectangleBorder(
+                    //     borderRadius: BorderRadius.circular(4),
+                    //   ),
+                    //   onChanged: (value) {
+                    //     _toggleReportType(ReportType.estimate);
+                    //   },
+                    //   title: const Text("Estimate Report"),
+                    // ),
                     const SizedBox(height: 40),
                     CustomDatePicker(
                       label: 'Start date',
@@ -236,7 +236,7 @@ class _ReportsPageState extends State<ReportsPage> {
                       value: _reportInput.endDate,
                     ),
                     // const Spacer(),
-                    const SizedBox(height: 70,),
+                    const SizedBox(height: 270,),
                     CustomButton(
                       title: "View",
                       style: Theme.of(context)

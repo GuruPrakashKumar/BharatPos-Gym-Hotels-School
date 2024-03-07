@@ -8,6 +8,22 @@ class SalesService {
   const SalesService();
 
   static Future<Response> payDue(Order orderItemInput, String invoiceNum) async {
+    var data = {
+      'paymentDate': DateTime.now().toString(),
+      'membership': orderItemInput.orderItems?[0].membership?.id,
+      'orderItems': orderItemInput.orderItems?.map((e) => e.toSaleMap()).toList(),
+      'modeOfPayment': orderItemInput.modeOfPayment,
+      'total': orderItemInput.modeOfPayment?.fold<double>(0, (acc, curr) {
+        return curr['amount'] + acc;
+      }),
+      'party': orderItemInput.party?.id,
+      'invoiceNum': invoiceNum,
+      'reciverName': orderItemInput.reciverName,
+      'businessName': orderItemInput.businessName,
+      'businessAddress': orderItemInput.businessAddress,
+      'gst': orderItemInput.gst,
+    };
+    print("paying duee: ${jsonEncode(data)}");
     final response = await ApiV1Service.postRequest(
       '/membership/payDue',
       data: {
@@ -15,8 +31,8 @@ class SalesService {
         'membership': orderItemInput.orderItems?[0].membership?.id,
         'orderItems': orderItemInput.orderItems?.map((e) => e.toSaleMap()).toList(),
         'modeOfPayment': orderItemInput.modeOfPayment,
-        'total': orderItemInput.orderItems?.fold<double>(0, (acc, curr) {
-          return curr.membership!.sellingPrice! + acc;
+        'total': orderItemInput.modeOfPayment?.fold<double>(0, (acc, curr) {
+          return curr['amount'] + acc;
         }),
         'party': orderItemInput.party?.id,
         'invoiceNum': invoiceNum,
@@ -35,12 +51,14 @@ class SalesService {
   static Future<Response> createSalesOrder(
     Order orderItemInput,
     String invoiceNum,
+      int validity
   ) async {
     var dataSent = {
       'paymentDate': DateTime.now().toString(),
       'membership': orderItemInput.orderItems?[0].membership?.id,
       'orderItems': orderItemInput.orderItems?.map((e) => e.toSaleMap()).toList(),
       'modeOfPayment': orderItemInput.modeOfPayment,
+      'validity': validity,
       'total': orderItemInput.orderItems?.fold<double>(0, (acc, curr) {
         return curr.membership!.sellingPrice! + acc;
       }),
@@ -57,6 +75,7 @@ class SalesService {
       '/membership/sell',
       data: {
         'paymentDate': DateTime.now().toString(),
+        'validity': validity,
         'membership': orderItemInput.orderItems?[0].membership?.id,
         'orderItems': orderItemInput.orderItems?.map((e) => e.toSaleMap()).toList(),
         'modeOfPayment': orderItemInput.modeOfPayment,

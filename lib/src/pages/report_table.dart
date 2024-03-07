@@ -116,9 +116,9 @@ class _ReportTableState extends State<ReportTable> {
       'Invoice No',
       'Party',
       'Mode of Payment',
-      'Product',
-      'Hsn',
-      "Rate",
+      'Plan',
+      // 'Hsn',
+      // "Rate",
       "Discount",
       "Taxable value", // 'Amount/Unit',
       'GST Rate',
@@ -384,8 +384,8 @@ class _ReportTableState extends State<ReportTable> {
             //     moplist[i].firstWhere((entry) => entry['mode'] == 'Credit',orElse: () => {'amount': 'N/A'})['amount'].toString(), style: TextStyle(fontSize: 6))),
 
             DataCell(Text(productnamelist[i], style: TextStyle(fontSize: 6))),
-            DataCell(Text(hsn[i], style: TextStyle(fontSize: 6))),
-            DataCell(Text(orginalbasePurchasePrice[i], style: TextStyle(fontSize: 6))),
+            // DataCell(Text(hsn[i], style: TextStyle(fontSize: 6))),
+            // DataCell(Text(orginalbasePurchasePrice[i], style: TextStyle(fontSize: 6))),
             DataCell(Text(discountAmt[i], style: TextStyle(fontSize: 6))),
             DataCell(Text(i == datelist.length - 1 ? basesplitTotal.toStringAsFixed(2) : basesplist[i], style: TextStyle(fontSize: 6))),
             DataCell(Text(gstratelist[i], style: TextStyle(fontSize: 6))),
@@ -418,8 +418,8 @@ class _ReportTableState extends State<ReportTable> {
           //     moplist[datelist.length-1].firstWhere((entry) => entry['mode'] == 'Credit',orElse: () => {'amount': 'N/A'})['amount'].toString(), style: TextStyle(fontSize: 6))),
 
           DataCell(Text(productnamelist[datelist.length - 1], style: TextStyle(fontSize: 6))),
-          DataCell(Text(hsn[datelist.length - 1], style: TextStyle(fontSize: 6))),
-          DataCell(Text(orginalbasePurchasePrice[datelist.length - 1], style: TextStyle(fontSize: 6))),
+          // DataCell(Text(hsn[datelist.length - 1], style: TextStyle(fontSize: 6))),
+          // DataCell(Text(orginalbasePurchasePrice[datelist.length - 1], style: TextStyle(fontSize: 6))),
           DataCell(Text(discountAmt[datelist.length - 1], style: TextStyle(fontSize: 6))),
           DataCell(Text(basesplist[datelist.length - 1], style: TextStyle(fontSize: 6))),
           DataCell(Text(gstratelist[datelist.length - 1], style: TextStyle(fontSize: 6))),
@@ -759,23 +759,24 @@ class _ReportTableState extends State<ReportTable> {
         datelist.add(DateFormat('dd MMM, yyyy').format(DateTime.tryParse(e.createdAt.toString())!));
         timelist.add(DateFormat('hh:mm a').format(DateTime.tryParse(e.createdAt.toString())!));
         partynamelist.add(e.party?.name ?? "N/A");
-        productnamelist.add("${item.quantity} x ${item.product?.name ?? ""}");
-        gstratelist.add("${item.product?.gstRate == "null" ? "N/A" : (item.product?.gstRate != "null" ? item.product?.gstRate : "N/A")}%");
+        productnamelist.add("${item.quantity} x ${item.membership?.plan ?? ""}");
+        gstratelist.add("${item.membership?.gstRate == "null" ? "N/A" : (item.membership?.gstRate != "null" ? item.membership?.gstRate : "N/A")}%");
         widget.args.type == "ReportType.sale" || widget.args.type == "ReportType.estimate"
             ? basesplist.add(
-            "${item.baseSellingPrice != "null" ? (double.parse(item.baseSellingPrice!) * item.quantity).toStringAsFixed(2) : (item.product?.baseSellingPriceGst != "null" && item.product?.baseSellingPriceGst != null ? (double.parse(item.product!.baseSellingPriceGst!) * item.quantity).toStringAsFixed(2) : "N/A")}")
+            "${item.baseSellingPrice != "null" ? (double.parse(item.baseSellingPrice!) * item.quantity).toStringAsFixed(2) : (item.membership?.basePrice != "null" && item.membership?.basePrice != null ? (double.parse(item.membership!.basePrice!) * item.quantity).toStringAsFixed(2) : "N/A")}")
             : basesplist.add("${item.product?.basePurchasePriceGst == "null" ? "N/A" : (double.parse(item.product!.basePurchasePriceGst!) * item.quantity)}");
         widget.args.type == "ReportType.sale"|| widget.args.type == "ReportType.estimate"
-            ? cgstlist.add("${item.saleCGST != "null" ? (double.parse(item.saleCGST!)*(item.quantity)).toStringAsFixed(2) : (item.product?.salecgst != "null" ? item.product?.salecgst : "N/A")}")
+            ? cgstlist.add("${item.saleCGST != "null" ? (double.parse(item.saleCGST!)*(item.quantity)).toStringAsFixed(2) : (item.membership?.cgst != "null" ? item.membership?.cgst : "N/A")}")
             : cgstlist.add("${item.product?.purchasecgst == "null" ? "N/A" : item.product?.purchasecgst}");
         widget.args.type == "ReportType.sale"|| widget.args.type == "ReportType.estimate"
-            ? sgstlist.add("${item.saleSGST != "null" ? (double.parse(item.saleSGST!)* (item.quantity)).toStringAsFixed(2) : (item.product?.salesgst != "null" && item.product?.salesgst != null? (double.parse(item.product!.salesgst!)*(item.quantity)) : "N/A")}")
+            ? sgstlist.add("${item.saleSGST != "null" ? (double.parse(item.saleSGST!)* (item.quantity)).toStringAsFixed(2) : (item.membership?.sgst != "null" && item.membership?.sgst != null? (double.parse(item.membership!.sgst!)*(item.quantity)) : "N/A")}")
             : sgstlist.add("${item.product?.purchasesgst == "null" ? "N/A" : item.product?.purchasesgst}");
         widget.args.type == "ReportType.sale"|| widget.args.type == "ReportType.estimate"
-            ? igstlist.add("${item.saleIGST != "null" ? (double.parse(item.saleIGST!) * (item.quantity)).toStringAsFixed(2) : (item.product?.saleigst != "null" && item.product?.saleigst != null ? (double.parse(item.product!.saleigst!)*(item.quantity)) : "N/A")}")
+            ? igstlist.add("${item.saleIGST != "null" ? (double.parse(item.saleIGST!) * (item.quantity)).toStringAsFixed(2) : (item.membership?.igst != "null" && item.membership?.igst != null ? (double.parse(item.membership!.igst!)*(item.quantity)) : "N/A")}")
             : igstlist.add("${item.product?.purchaseigst == "null" ? "N/A" : item.product?.purchaseigst}");
         widget.args.type == "ReportType.sale" || widget.args.type == "ReportType.estimate"
-            ? mrplist.add("${item.price?.toStringAsFixed(2)}") : mrplist.add("${item.product?.purchasePrice == "null" ? "N/A" : item.product?.purchasePrice}");
+            ? mrplist.add("${item.price?.toStringAsFixed(2)}")
+            : mrplist.add("${item.product?.purchasePrice == "null" ? "N/A" : item.product?.purchasePrice}");
         hsn.add("${item.product?.hsn == "null" ? "N/A" : item.product?.hsn}");
         discountAmt.add("${item.discountAmt == "null" ? "N/A" : item.discountAmt}");
 
@@ -785,7 +786,8 @@ class _ReportTableState extends State<ReportTable> {
         estimateNum.add("${e.estimateNum == null? "N/A": e.estimateNum}");
         orginalbasePurchasePrice.add("${item.product?.sellingPrice}");
         widget.args.type == "ReportType.sale" || widget.args.type == "ReportType.estimate"
-            ? totalsplist.add("${((item.quantity) * (item.price ?? 0)).toStringAsFixed(2)}") : totalsplist.add("${((item.quantity) * (item.product?.purchasePrice ?? 0)).toStringAsFixed(2)}");
+            ? totalsplist.add("${((item.quantity) * (item.price ?? 0)).toStringAsFixed(2)}")
+            : totalsplist.add("${((item.quantity) * (item.product?.purchasePrice ?? 0)).toStringAsFixed(2)}");
 
         moplist.add(e.modeOfPayment ?? [{"N/A":0}]);
         breakruler = DateFormat('hh:mm a').format(DateTime.tryParse(e.createdAt.toString())!);
@@ -963,10 +965,10 @@ class _ReportTableState extends State<ReportTable> {
       'Time',
       'invoice No',
       'Party',
-      'M.O.P.',
+      'Mode of Payment',
       'Product',
-      'Hsn',
-      "Rate",
+      // 'Hsn',
+      // "Rate",
       "Discount",
       "Taxable value", // 'Amount/Unit',
       'GST Rate',
@@ -1003,16 +1005,16 @@ class _ReportTableState extends State<ReportTable> {
         sheet.getRangeByIndex(i + 2, 5).setText(moplist[i].map((map) => "${map['mode'] ?? "N/A"} : ${map['amount'] ?? ""}")
             .join(', '));
         sheet.getRangeByIndex(i + 2, 6).setText(productnamelist[i]);
-        sheet.getRangeByIndex(i + 2, 7).setText(hsn[i]);
-        sheet.getRangeByIndex(i + 2, 8).setText(orginalbasePurchasePrice[i]);
-        sheet.getRangeByIndex(i + 2, 9).setText(discountAmt[i]);
-        sheet.getRangeByIndex(i + 2, 10).setText(basesplist[i]);
-        sheet.getRangeByIndex(i + 2, 11).setText(gstratelist[i]);
-        sheet.getRangeByIndex(i + 2, 12).setText(cgstlist[i]);
-        sheet.getRangeByIndex(i + 2, 13).setText(sgstlist[i]);
-        sheet.getRangeByIndex(i + 2, 14).setText(igstlist[i]);
-        sheet.getRangeByIndex(i + 2, 15).setText(mrplist[i]);
-        sheet.getRangeByIndex(i + 2, 16).setText(totalsplist[i]);
+        // sheet.getRangeByIndex(i + 2, 7).setText(hsn[i]);
+        // sheet.getRangeByIndex(i + 2, 8).setText(orginalbasePurchasePrice[i]);
+        sheet.getRangeByIndex(i + 2, 7).setText(discountAmt[i]);
+        sheet.getRangeByIndex(i + 2, 8).setText(basesplist[i]);
+        sheet.getRangeByIndex(i + 2, 9).setText(gstratelist[i]);
+        sheet.getRangeByIndex(i + 2, 10).setText(cgstlist[i]);
+        sheet.getRangeByIndex(i + 2, 11).setText(sgstlist[i]);
+        sheet.getRangeByIndex(i + 2, 12).setText(igstlist[i]);
+        sheet.getRangeByIndex(i + 2, 13).setText(mrplist[i]);
+        sheet.getRangeByIndex(i + 2, 14).setText(totalsplist[i]);
       }
     }
 

@@ -14,7 +14,8 @@ class PartyError extends PartyState {
 
 class PartyListRender extends PartyState {
   final List<Party> parties;
-  PartyListRender(this.parties);
+ final List<Party> inactiveParties;
+  PartyListRender(this.parties, this.inactiveParties);
 }
 
 class CreditPartiesListRender extends PartyState {
