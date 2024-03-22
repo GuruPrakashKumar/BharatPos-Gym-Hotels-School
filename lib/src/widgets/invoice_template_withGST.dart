@@ -61,11 +61,6 @@ String invoiceTemplatewithGST({
     headers.remove("Taxable value");
     headers.remove("GST");
   }
-  if(!atLeastOneItemHaveGST){
-    // headers.insert(1, "");
-    headers.insert(0, "");
-    headers.insert(0, "");
-  }
   ///
   String headerRows() => List.generate(
         headers.length,
@@ -190,8 +185,6 @@ String invoiceTemplatewithGST({
                       '</tr>';
             else {
               return '<tr>'+
-                (!atLeastOneItemHaveGST? '<td class="left"> </td>''<td class="left"> </td>' : "")
-                  +
                       '<td class="left product-name">${orderItem.membership?.plan}</td>'
                   +
                         // (!atLeastOneItemHaveGST ? '<td class="left"> </td>' : "") +
@@ -318,9 +311,15 @@ String invoiceTemplatewithGST({
       }
       .table {
         width: 100%;
+        table-layout: fixed;
       }
       .table th, .table td {
-        white-space: nowrap;
+        text-align: left;
+        padding: 8px;
+        border: 1px solid #ddd;
+      }
+      .table thead th {
+        background-color: #f2f2f2;
       }
       tbody {
         font-size: 13px;
@@ -357,15 +356,15 @@ String invoiceTemplatewithGST({
               ${addressRows()}
               <div>Email: ${user.email ?? ""}</div>
               <div>Phone: ${user.phoneNumber}</div>
-              <div>DL Number: ${user.dlNum}</div>
+              ${user.dlNum == null ? "": "<div>DL Number: ${user.dlNum}</div>"}
             </div>
             <div class="receiver">
              ${billedTo()}
               ${receiverName()}
               ${businessName()}
               ${businessAddress()}
-              // ${usergstin()}
-              // ${userdlNum()}
+              ${usergstin()}
+              ${userdlNum()}
               
              
               
@@ -387,22 +386,21 @@ String invoiceTemplatewithGST({
               <tbody>
                 <tr>
                 <td></td>
-                <td></td>
-                <td></td>
                 ${headers.contains("HSN")?"<td></td>":""}
+                ${headers.contains("MRP")?"<td></td>":""}
                 ${headers.contains("Expiry")?"<td></td>":""}
+                ${headers.contains("Taxable value")?"<td></td>":""}
+                ${headers.contains("GST")?"<td></td>":""}
                   <td class="left">
                     <strong>Sub Total</strong>
                     <br>
-                    <strong>GST Total</strong>
-                    <br>
+                    ${atLeastOneItemHaveGST ? "<strong>GST Total</strong><br>" : ""}
                     <strong>Net Total</strong>
                   </td>
                   <td class="right">
                     ₹ $subtotal
                     <br>
-                    ₹ $gsttotal
-                    <br>
+                     ${atLeastOneItemHaveGST ? "₹ $gsttotal<br>" : ""}
                     ₹ $total
                   </td>
                 </tr>

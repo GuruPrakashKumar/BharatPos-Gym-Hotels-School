@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:1025146175164:android:ef58c6d31e15999ee99ab9",
         "android_client_info": {
-          "package_name": "com.cube.magicstep"
+          "package_name": "com.bharatpos.subscriptions"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "1025146175164-t6ejjh0pi21bfek3jro6ugbb00eejhgu.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.cube.magicstep",
+            "package_name": "com.bharatpos.subscriptions",
             "certificate_hash": "563fead310a7e090118e90e1cd24f43f5a215a36"
           }
         },

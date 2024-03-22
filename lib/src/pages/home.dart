@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:provider/provider.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 
 import 'package:shopos/src/blocs/home/home_cubit.dart';
 import 'package:shopos/src/config/colors.dart';
@@ -100,11 +101,22 @@ class _HomePageState extends State<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text("Hi ${state.user.businessName ?? ""}!"),
+                        SizedBox(
+                          width: 35,
+                        ),
                       ],
                     ),
-                    Text(
-                      "Welcome back",
-                      style: TextStyle(fontSize: 15, color: Colors.grey),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Welcome back",
+                          style: TextStyle(fontSize: 15, color: Colors.grey),
+                        ),
+                        SizedBox(
+                          width: 35,
+                        ),
+                      ],
                     )
                   ],
                 ),
@@ -375,46 +387,47 @@ class _HomePageState extends State<HomePage> {
                     ),
                     Row(
                       children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              // Navigator.pushNamed(
-                              //   context,
-                              //   CreatePurchase.routeName,
-                              // );
-                            },
-                            child: Column(
-                              children: [
-                                Card(
-                                  color: Color.fromARGB(255, 255, 101, 122)
-                                      .withOpacity(0.5),
-                                  elevation: 5,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    side: BorderSide(
-                                      color: Color.fromARGB(255, 175, 76,
-                                          76), // Set the border color
-                                      width: 2.0, // Set the border width
-                                    ),
-                                  ),
-                                  child: Padding(
-                                      padding: const EdgeInsets.all(18),
-                                      child: Image.asset(
-                                        "assets/images/planning.png",
-                                        height: 80,
-                                        width: 90,
-                                      )),
-                                ),
-                                Text(
-                                  "Attendance",
-                                  style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w600),
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
+                        // Expanded(
+                        //   child: GestureDetector(
+                        //     onTap: () {
+                        //       // Navigator.pushNamed(
+                        //       //   context,
+                        //       //   CreatePurchase.routeName,
+                        //       // );
+                        //       attendancePageNotAvailable(context);
+                        //     },
+                        //     child: Column(
+                        //       children: [
+                        //         Card(
+                        //           color: Color.fromARGB(255, 255, 101, 122)
+                        //               .withOpacity(0.5),
+                        //           elevation: 5,
+                        //           shape: RoundedRectangleBorder(
+                        //             borderRadius: BorderRadius.circular(12),
+                        //             side: BorderSide(
+                        //               color: Color.fromARGB(255, 175, 76,
+                        //                   76), // Set the border color
+                        //               width: 2.0, // Set the border width
+                        //             ),
+                        //           ),
+                        //           child: Padding(
+                        //               padding: const EdgeInsets.all(18),
+                        //               child: Image.asset(
+                        //                 "assets/images/planning.png",
+                        //                 height: 80,
+                        //                 width: 90,
+                        //               )),
+                        //         ),
+                        //         Text(
+                        //           "Attendance",
+                        //           style: TextStyle(
+                        //               fontSize: 20,
+                        //               fontWeight: FontWeight.w600),
+                        //         )
+                        //       ],
+                        //     ),
+                        //   ),
+                        // ),
                         Expanded(
                           child: GestureDetector(
                             onTap: () {
@@ -476,7 +489,29 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+  attendancePageNotAvailable(context) {
+    Alert(
+        title: "Attendance Coming Soon",
+        style: const AlertStyle(
+          animationType: AnimationType.grow,
+          // isCloseButton: false,,
+          isOverlayTapDismiss: true,
+          isButtonVisible: false,
+        ),
+        context: context,
+        closeFunction: (){
+            Navigator.pop(context);
+        },
 
+        content: Column(
+          children: [
+            SizedBox(height: 20,),
+            Text(
+              'Attendance Feature will be coming soon in future updates',style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+          ],
+        )).show();
+  }
   // Future<bool?> showRestartAppDialouge() {
   //   return showDialog(
   //       context: context,

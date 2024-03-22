@@ -85,7 +85,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     emit(CheckoutLoading());
     try {
       await SalesService.createSalesOrder(input, invoiceNum, validity);
-      await SalesService.payDue(input, invoiceNum);
+      // await SalesService.payDue(input, invoiceNum);
       emit(CheckoutSuccess());
     } on DioError catch (_) {
       emit(CheckoutError("Something went wrong"));

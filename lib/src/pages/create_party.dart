@@ -39,7 +39,7 @@ class _CreatePartyPageState extends State<CreatePartyPage> {
   void initState() {
     super.initState();
     _partyInput =
-        PartyInput(type: widget.args.partyType, id: widget.args.partyId);
+        PartyInput(type: "customer", id: widget.args.partyId);
     _partyCubit = PartyCubit();
   }
 

@@ -1,4 +1,4 @@
-package com.cube.magicstep
+package com.bharatpos.subscriptions
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -10,7 +10,7 @@ import android.net.Uri
 import android.os.Build
 import android.telephony.PhoneNumberUtils
 import androidx.annotation.NonNull
-import com.cube.magicstep.R
+import com.bharatpos.subscriptions.R
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel

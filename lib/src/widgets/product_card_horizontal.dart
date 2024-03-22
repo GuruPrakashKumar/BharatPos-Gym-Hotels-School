@@ -152,7 +152,7 @@ class _ProductCardHorizontalState extends State<ProductCardHorizontal> {
                       ),
                       Divider(color: Colors.black54),
                       Container(
-                        width: MediaQuery.of(context).size.width/2.30,
+                        width: MediaQuery.of(context).size.width/1.80,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -186,6 +186,18 @@ class _ProductCardHorizontalState extends State<ProductCardHorizontal> {
                                 Text('Net Price'),
                                 Text(
                                   ' ₹ ${widget.membership.sellingPrice!.toStringAsFixed(2) ?? 0.0}',
+                                  maxLines: 1,
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Type'),
+                                Text(
+                                  ' ${widget.membership.subscription_type}',
                                   maxLines: 1,
                                 ),
                               ],

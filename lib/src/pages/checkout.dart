@@ -333,6 +333,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               popAll ? SizedBox(height: 20,): SizedBox.shrink(),
               popAll ? Text("$successMsg",style: TextStyle(fontSize: 14),): SizedBox.shrink(),
               popAll ? SizedBox(height: 60,): SizedBox(height: 20,),
+              if(widget.args.order.orderItems?[0].membership?.subscription_type == "prepaid" || widget.args.payDue == true)
               Row(
                 children: [
                   Expanded(
@@ -492,8 +493,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
   ///
   _viewPdf(bool popAll) async {
-    includePayments();
-    calculate();
+    if(widget.args.order.orderItems?[0].membership?.subscription_type == "prepaid" || widget.args.payDue == true){
+      includePayments();
+      calculate();
+    }
     bool expirydateAvailableFlag = false;
     bool hsnAvailableFlag = false;
     bool mrpAvailableFlag = false;
@@ -1262,8 +1265,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                   ),
                                   if(widget.args.payDue==false)
                                   const Divider(color: Colors.transparent, height: 30),
-                                  if (widget.args.invoiceType !=
-                                      OrderType.saleReturn)
+                                  if (widget.args.invoiceType != OrderType.saleReturn)
+                                    if(widget.args.order.orderItems?[0].membership?.subscription_type == "prepaid" || widget.args.payDue == true)
                                     Column(
                                       children: [
                                         Row(
@@ -1727,27 +1730,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
     _formKey.currentState?.save();
     if (_formKey.currentState?.validate() ?? false) {
 
-      bool paymentValidation = includePayments();
+      bool paymentValidation = true;
+      if(widget.args.order.orderItems?[0].membership?.subscription_type == "prepaid" || widget.args.payDue == true){
+        paymentValidation = includePayments();
+        if(paymentValidation)
+          calculate();
+      }
 
-      // if(widget.args.payDue == true) { //condition for paying less amount than due
-      //   for (int i = 0; i < widget.args.order.orderItems!.length; i++) {
-      //     OrderItemInput orderItem = widget.args.order.orderItems![i];
-      //     double? totalInputAmount = widget.args.order.modeOfPayment?.fold<double>(0, (acc, curr) {
-      //       return curr['amount'] + acc;
-      //     });
-      //     if(orderItem.membership?.gstRate!="null"){
-      //       if(orderItem.membership!.GSTincluded!){
-      //         _onTotalChange(orderItem.membership!, totalInputAmount?.toStringAsFixed(2));
-      //       }else{
-      //         _onSubtotalChange(orderItem.membership!, totalInputAmount?.toStringAsFixed(2));
-      //       }
-      //     }else{
-      //         _onTotalChange(orderItem.membership!, totalInputAmount?.toStringAsFixed(2));
-      //     }
-      //   }
-      if(paymentValidation)
-        calculate();
-      // }
 
 
       salesInvoiceNo = await _checkoutCubit.getSalesNum() as int;
@@ -1785,7 +1774,7 @@ Future<void> _launchUrl(mobNum, user,List<Map<String, dynamic>>? paymethod, sub,
   for (int i = 0; i < items.length; i++) {
     if (items[i].membership.plan.length <= 4) {
       x = x +
-          "%0A%09%09%09${items[i].membership.plan}%09%09%20%09%09%09${items[i].membership.validity}%09%09%09%09%09%09${items[i].membership.sellingPrice}%09%09%09%09%09%09%09${items[i].membership.sellingPrice * items[i].quantity}";
+          "%0A%09%09%09${items[i].membership.plan}%09%09%20%09%09%09${items[i].membership.validity}%09%09%09%09%09%09${items[i].membership.sellingPrice.toStringAsFixed(2)}%09%09%09%09%09%09%09${items[i].membership.sellingPrice.toStringAsFixed(2)}";
     } else {
       x = x +
           "%0A%09%09%09${items[i].membership.plan.substring(0, 4)}%09%09%20%09%09%09${items[i].quantity}%09%09%09%09%09%09${items[i].membership.sellingPrice}%09%09%09%09%09%09%09${items[i].membership.sellingPrice * items[i].quantity}";

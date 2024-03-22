@@ -10,13 +10,15 @@ class MembershipPlanModel{
     this.gstRate,
     this.cgst,
     this.sgst,
-    this.igst
+    this.igst,
+    this.subscription_type
   });
   String? id;
   String? user;
   String? plan;
   int? validity;
   String? basePrice;
+  String? subscription_type;
   double? sellingPrice;
   bool? GSTincluded;
   String? gstRate;
@@ -32,6 +34,7 @@ class MembershipPlanModel{
       "validity": validity,
       "basePrice": basePrice,
       "sellingPrice": sellingPrice,
+      "subscription_type": subscription_type,
       "GSTincluded": GSTincluded,
       "GSTRate": gstRate,
       "CGST": cgst,
@@ -45,6 +48,7 @@ class MembershipPlanModel{
       user: map['user'],
       plan: map['plan'],
       validity: map['validity'],
+        subscription_type: map['subscription_type'],
       basePrice: map['basePrice'].toString(),
       sellingPrice: map['sellingPrice'] != null ? double.parse(map['sellingPrice'].toString()) : 0,
       GSTincluded: map['GSTincluded'],

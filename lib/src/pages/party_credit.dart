@@ -285,11 +285,11 @@ class _PartyCreditPageState extends State<PartyCreditPage> {
                                 children: [
                                   Text("Due: ",style:TextStyle(fontWeight: FontWeight.bold),),
                                   Text(
-                                    "${activeMem.due}",
+                                    "${activeMem.due?.toStringAsFixed(2)}",
                                   )
                                 ],
                               ),
-                              if(activeMem.due!>0)
+                              if(activeMem.due!>0.01)
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [

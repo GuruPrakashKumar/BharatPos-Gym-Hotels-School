@@ -8,8 +8,8 @@ class CustomInterceptor extends Interceptor {
     print("---in line 8 of dio_interceptor--");
     // print(err.message);
     print("err.response: ");
-    // print(err.response);
-    // print(err.response?.data);
+    print(err.response);
+    print(err.response?.data);
     // print(err.response?.data['message']);
 
     // final errorMessage = err.response?.data is List
@@ -17,7 +17,10 @@ class CustomInterceptor extends Interceptor {
     //     : err.message;
     final errorMessage = err.response?.data['message'];
     const message = "Something went wrong";
-    // locator<GlobalServices>().errorSnackBar(errorMessage ?? message);
+    // print("errorMEsg = $errorMessage");
+    // if(errorMessage == 'Your subscription is not active')
+    // if(errorMessage!=null)
+    locator<GlobalServices>().errorSnackBar(errorMessage ?? message);
     return super.onError(err, handler);
   }
 }
